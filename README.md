@@ -1,5 +1,5 @@
 
-firefox->udtsocksserver->udtsocks_cli------firewall------udtforwardserver -> udtforwardclient -> targetwebsite
+firefox->udtsocksserver------firewall------ udtforwardclient -> targetwebsite
 
 udt pkt cross firewall.
 

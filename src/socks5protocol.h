@@ -16,8 +16,9 @@ public:
 
 	static void req(std::vector<unsigned char> &vec);
 	static void response_req(std::vector<unsigned char> &vec);
-
-
+	static void response_hello_with_no_auth(std::vector<unsigned char> &vec);
+	static void response_hello_with_fail(std::vector<unsigned char> &vec);
+	static int  recv_socks5_request(UDTSOCKET sock, std::vector<unsigned char> &vec);
 };
 
 #endif /* SOCKS5PROTOCOL_H_ */

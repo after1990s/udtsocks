@@ -18,8 +18,8 @@ class udtconfig {
 public:
 	udtconfig();
 	virtual ~udtconfig();
-	void parseconfig();
-
+	static void parseconfig();
+	static struct addrinfo getaddr();
 
 private:
 	static CONFIG m_config;
