@@ -26,7 +26,10 @@
 #include <errno.h>
 #include "autocritical.h"
 #include "socks5.h"
+#include "socks5protocol.h"
+#include "udtconfig.h"
 //run outside firewall.
+//TODO:syssock close not handle.udtsock close not handle
 class udtforwardclient {
 public:
 	udtforwardclient();
@@ -43,13 +46,18 @@ private:
 	static int   udtforwardclient_sock5_auth(UDTSOCKET sock);
 	static int   udtforwardclient_socks5_req(UDTSOCKET sock);
 	static int   udtforwardclient_sock5_tryconnect(std::vector<unsigned char> &vec);
+	static int   udtforwardclient_targetsocket_from_udtsocket(UDTSOCKET sock);//from udtsocket get syssocket.
+	static void  udtforwardclient_send_syssock(int sock, const char * buf, int len);//be sure all data write to socket.
+	static void  udtforwardclient_send_udtsock(UDTSOCKET sock, const char * buf, int len);
+	static bool udtforwardclient_checkclientaddr(sockaddr addr);
 	static void setnonblocking(int sock);
+	static void udtforwardclient_initudtserver(void);
 private:
 
 	//static udtforwardclient * m_pinstance;
 	static pthread_mutex_t m_mutex;
 	static UDTSOCKET m_udtsock;
-	static std::map<int, UDTSOCKET> m_socketmap;
+	static std::map<int, UDTSOCKET> m_socketmap; // <targetsocket, udtsocket>
 	static int m_eid;
 
 };

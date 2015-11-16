@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include <iostream>
 #include <map>
 #include <udt.h>
@@ -42,7 +43,7 @@ public:
 	virtual ~udtsocksserver();
 
 public:
-	static void   udtsocksserver_init(const sockaddr *addr, int port);
+	static void   udtsocksserver_init();
 	static void * udtsocksserver_accept(void *psocket);
 	static void * udtsocksserver_epoll(void *peid);
 

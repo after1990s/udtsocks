@@ -7,7 +7,27 @@
 
 #ifndef SOCKS5PROTOCOL_H_
 #define SOCKS5PROTOCOL_H_
-#include <vector>
+#include <iostream>
+#include <unistd.h>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <map>
+#include <udt.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/times.h>
+#include <sys/epoll.h>
+#include <netdb.h>
+#include <pthread.h>
+#include <udt.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include "autocritical.h"
+#include "socks5.h"
+#include "udtconfig.h"
+
 //处理各种socks5协议的格式。
 class socks5protocol {
 public:

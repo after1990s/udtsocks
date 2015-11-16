@@ -24,14 +24,21 @@ udtsocksserver::~udtsocksserver() {
 }
 
 
-void udtsocksserver::udtsocksserver_init(const sockaddr *addr, int port)
+void udtsocksserver::udtsocksserver_init()
 {
 	pthread_mutex_init(&m_mutex, NULL);
 	m_epoll_thread = NULL;
 	UDT::startup();
 	//inital socket
 	udtsocksserver::m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
 	//inital addr.
+	struct sockaddr_in addr ={0};
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = htons(atoi(udtconfig::getlistenport().c_str()));
+
+
 	int on = 1;
 	if (setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 	{
@@ -39,7 +46,7 @@ void udtsocksserver::udtsocksserver_init(const sockaddr *addr, int port)
 		return;
 	}
 	//bind and listen.
-	bind(m_socket, addr, sizeof(sockaddr));
+	bind(m_socket, (struct sockaddr*)&addr, sizeof(addr));
 	listen(m_socket, 10);
 	//create epoll
 	m_eid = epoll_create(1);
@@ -69,6 +76,7 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 		UDTSOCKET newclient = connectserver();
 		if (newclient==-1)
 		{
+			close(clisocket);
 			perror("connect server failed \n");
 			continue;
 		}
@@ -136,10 +144,11 @@ end:
 UDTSOCKET udtsocksserver::connectserver(void)
 {
 	UDTSOCKET sock = UDT::socket(AF_INET, SOCK_STREAM, IPPROTO_UDP);
-	struct addrinfo addr =  udtconfig::getaddr();
+	struct addrinfo addr =  udtconfig::getserveraddr();
 
 	if (UDT::connect(sock, (sockaddr*)addr.ai_addr, addr.ai_addrlen) != 0)
 	{
+		UDT::close(sock);
 		return -1;
 	}
 	return sock;

@@ -19,8 +19,31 @@ udtconfig::~udtconfig() {
 void udtconfig::parseconfig()
 {
 	//demon
-	memset(&udtconfig::m_config, 0, sizeof(m_config));
-	strncpy (udtconfig::m_config.domain,"127.0.0.1", 11);
-	udtconfig::m_config.port = 9010;
 	return ;
+}
+struct addrinfo udtconfig::getserveraddr()
+{
+	return m_config.remote_server_addr;
+}
+std::string udtconfig::getlistenport()
+{
+	std::string s = m_config.listen_port;
+	return s;
+}
+void udtconfig::setlistenport(char *port)
+{
+	m_config.listen_port = port;
+}
+void udtconfig::setserveraddr(char *addr, char* port)
+{
+	m_config.domain = addr;
+	struct addrinfo hints = {0};
+	hints.ai_family  = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	struct addrinfo *res = NULL;
+	getaddrinfo(addr, port, &hints, &res);
+
+	memset (&m_config.remote_server_addr, 0, sizeof(m_config.remote_server_addr));
+	memcpy (&m_config.remote_server_addr, res, sizeof(m_config.remote_server_addr));
+	freeaddrinfo(res);
 }

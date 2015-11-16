@@ -11,6 +11,9 @@
 #define SOCKS5_CMD_CONNECT 0x01
 #define SOCKS5_CMD_BIND 0x02
 #define SOCKS5_CMD_UDPASSOC 0x03
+#define SOCKS5_ATTYPE_IPV4 0x01
+#define SOCKS5_ATTYPE_DOMAIN 0x03
+#define SOCKS5_ATTYPE_IPV6 0x04
 typedef struct _socks5_method_req_t
 {
     uint8_t ver;

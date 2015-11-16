@@ -10,8 +10,8 @@ CPP_SRCS += \
 ../src/udtconfig.cpp \
 ../src/udtforwardclient.cpp \
 ../src/udtforwardclient_test.cpp \
-../src/udtsocksserver.cpp \
-../src/udtsocs.cpp 
+../src/udtsocks.cpp \
+../src/udtsocksserver.cpp 
 
 OBJS += \
 ./src/autocritical.o \
@@ -20,8 +20,8 @@ OBJS += \
 ./src/udtconfig.o \
 ./src/udtforwardclient.o \
 ./src/udtforwardclient_test.o \
-./src/udtsocksserver.o \
-./src/udtsocs.o 
+./src/udtsocks.o \
+./src/udtsocksserver.o 
 
 CPP_DEPS += \
 ./src/autocritical.d \
@@ -30,15 +30,15 @@ CPP_DEPS += \
 ./src/udtconfig.d \
 ./src/udtforwardclient.d \
 ./src/udtforwardclient_test.d \
-./src/udtsocksserver.d \
-./src/udtsocs.d 
+./src/udtsocks.d \
+./src/udtsocksserver.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
 src/%.o: ../src/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -Ipthread -Iudt -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	g++ -Ipthread -Iudt -O0 -g3 -Wall -c -fmessage-length=0 -std=c++0x -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
