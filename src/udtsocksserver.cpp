@@ -9,7 +9,7 @@
 int udtsocksserver::m_socket;
 int udtsocksserver::m_eid;
 pthread_mutex_t udtsocksserver::m_mutex;
-pthread_t udtsocksserver::m_epoll_thread;
+pthread_t udtsocksserver::m_epoll_thread = 0;
 
 std::map<int,int> udtsocksserver::m_socket_pair;//<socket, UDTSOCKET>
 
@@ -49,44 +49,123 @@ void udtsocksserver::udtsocksserver_init()
 	bind(m_socket, (struct sockaddr*)&addr, sizeof(addr));
 	listen(m_socket, 10);
 	//create epoll
-	m_eid = epoll_create(1);
+	m_eid = UDT::epoll_create();
+	int read_events = UDT_EPOLL_IN |UDT_EPOLL_ERR;
 
+	UDT::epoll_add_ssock(m_eid,m_socket, &read_events);
 	//create thread to accept new connect.
-	pthread_create(&m_epoll_thread, NULL, udtsocksserver_accept, &m_socket);
+	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
 	//detach thread
 	pthread_detach(m_epoll_thread);
 	return ;
+}
+
+//this function implement socks5 proxy protocol.
+void * udtsocksserver::udtsocksserver_epoll(void *peid)
+{
+	//while : wait epoll
+	const int epoll_event_size = 20;
+
+	std::set<UDTSOCKET>* udtreadfds = new  std::set<UDTSOCKET>();
+	std::set<UDTSOCKET>* udtwritefds= new std::set<UDTSOCKET>();
+	std::set<SYSSOCKET>* sysreadfds = new std::set<SYSSOCKET>();
+	std::set<SYSSOCKET>* syswritefds =new  std::set<SYSSOCKET>();
+	int64_t msTimeOut = -1;
+
+	std::vector<unsigned char> vec_buf;
+	vec_buf.resize(1024*10);
+	while (true)
+	{
+		vec_buf.clear();
+		//check socket status:
+		int res = UDT::epoll_wait(m_eid, udtreadfds, udtwritefds, msTimeOut, sysreadfds, syswritefds);
+		if (res<0)
+		{
+			sleep(2);
+			perror("udt epoll fail!");
+			continue;
+		}
+		for (auto i=sysreadfds->begin(); i!=sysreadfds->end(); i++)
+		{
+			if (*i == m_socket)
+			{//new connection
+				udtsocksserver_accept(&m_socket);
+				continue;
+			}
+			int ssock = *i;
+			int usock = m_socket_pair[ssock];
+			int iread = recv(ssock, &vec_buf[0], vec_buf.max_size(), 0);
+			if (iread==0)
+			{
+				//socket closed.
+				udtsockserver_closesocket(usock, ssock);
+				continue;
+			}
+			UDT::send (usock, (char*)&vec_buf[0], iread, 0);
+		}
+		for (auto i=udtreadfds->begin(); i!= udtreadfds->end(); i++)
+		{
+			int ssock = udtsocksserver_sourcesock_from_udt(*i);
+			int usock = *i;
+			int recved = UDT::recv(usock, (char*)&vec_buf[0], vec_buf.max_size(), 0);
+			if (recved == 0)
+			{//socket close
+				udtsockserver_closesocket(usock, ssock);
+				continue;
+			}
+			send(ssock, (void*)&vec_buf[0], recved, 0);
+		}
+	}//endwhile
+	//error handle
+end:
+	perror("udtsocksserver_epoll error");
+	return NULL;
+}
+void udtsocksserver::udtsockserver_closesocket(UDTSOCKET usock, int ssock)
+{
+	UDT::close(usock);
+	UDT::epoll_remove_usock(m_eid, usock);
+
+	UDT::epoll_remove_ssock(m_eid, ssock);
+	close(ssock);
+	m_socket_pair.erase(ssock);
+}
+int udtsocksserver::udtsocksserver_sourcesock_from_udt(UDTSOCKET usock)
+{
+	for (auto i=m_socket_pair.begin(); i != m_socket_pair.end(); i++)
+	{
+		if (i->second == usock)
+		{
+			return i->first;
+		}
+	}
+	perror("ERROR:unexpected syssocket in.");
+	return -1;
 }
 void * udtsocksserver::udtsocksserver_accept(void *psocket)
 {
 	//get socket
 	int socket = *(int*)psocket;
 	sockaddr cliaddr = {0};
-	//while true : accept
-	while (true){
+
+	{
 		unsigned int addrlen = sizeof(sockaddr);
 		int clisocket = accept(socket, &cliaddr, &addrlen);
 		//set socket to async.
 		setnonblocking(clisocket);
 		// add socket to epoll eid. add socket to socket map,should use mutex proctect.
-		struct epoll_event socket_epoll_event = {0};
-		socket_epoll_event.data.fd = clisocket;
-		socket_epoll_event.events = EPOLLIN;
 		new autocritical(m_mutex);
 		UDTSOCKET newclient = connectserver();
 		if (newclient==-1)
 		{
 			close(clisocket);
 			perror("connect server failed \n");
-			continue;
+			return NULL;
 		}
 		m_socket_pair.insert(std::pair<int,int>(clisocket, newclient));
-		epoll_ctl(m_eid, EPOLL_CTL_ADD, clisocket, &socket_epoll_event);
-		//create thread  epoll, if epoll thread no exits.
-		if (m_epoll_thread==NULL)
-		{
-			pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_eid);
-		}
+		int event_read = UDT_EPOLL_IN | UDT_EPOLL_ERR;
+		UDT::epoll_add_ssock(m_eid, clisocket, &event_read);
+
 	}//end while
 
 
@@ -111,35 +190,6 @@ void udtsocksserver::setnonblocking(int sock)
 }
 
 
-
-//this function implement socks5 proxy protocol.
-void * udtsocksserver::udtsocksserver_epoll(void *peid)
-{
-	//while : wait epoll
-	const int epoll_event_size = 20;
-	epoll_event sock_epoll_events[epoll_event_size] = {0};
-	std::vector<unsigned char> vec_buf;
-	vec_buf.resize(1024*10);
-	while (true)
-	{
-		memset (sock_epoll_events, 0, epoll_event_size * sizeof(epoll_event));
-		//check socket status:
-		int events_count = epoll_wait(m_eid, sock_epoll_events, epoll_event_size, -1);
-		for (int i=0; i<events_count; i++)
-		{
-			vec_buf.clear();
-			int sock = sock_epoll_events[i].data.fd;
-			int iread = read(sock, &vec_buf[0], vec_buf.size());
-			int udtsock = m_socket_pair[sock];
-			UDT::send (udtsock, (char*)&vec_buf[0], iread, 0);
-
-		}
-	}//endwhile
-	//error handle
-end:
-	perror("udtsocksserver_epoll error");
-	return NULL;
-}
 
 UDTSOCKET udtsocksserver::connectserver(void)
 {

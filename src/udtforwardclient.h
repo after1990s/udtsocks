@@ -52,6 +52,7 @@ private:
 	static bool udtforwardclient_checkclientaddr(sockaddr addr);
 	static void setnonblocking(int sock);
 	static void udtforwardclient_initudtserver(void);
+	static void udtforwardclient_closesocket(UDTSOCKET usock, int ssock);
 private:
 
 	//static udtforwardclient * m_pinstance;

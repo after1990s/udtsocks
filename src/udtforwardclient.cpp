@@ -106,24 +106,33 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 				}
 				else
 				{
+					//data comes
 					memset(buf, 0, bufsize);
 					//transport data from udt to target socket.
-					int recved = UDT::recv(*i, buf, bufsize, 0);
-					int syssock = udtforwardclient_targetsocket_from_udtsocket(*i);
-					if (syssock==-1)
-					{
-						perror("recv data from unexpected udtsocket");
+					UDTSOCKET usock = *i;
+					int recved = UDT::recv(usock, buf, bufsize, 0);
+					int ssock = udtforwardclient_targetsocket_from_udtsocket(usock);
+					if (ssock==-1 || ssock==0)
+					{//remote close socket
+						udtforwardclient_closesocket(usock, ssock);
 						continue;
 					}
-					udtforwardclient_send_syssock(syssock, buf, recved);
+					udtforwardclient_send_syssock(ssock, buf, recved);
 				}
 			}
 
 			for (auto i=sysreadfds->begin(); i!= sysreadfds->end(); i++)
 			{
+				int ssock = *i;
+				int usock = m_socketmap[ssock];
 				memset(buf, 0, bufsize);
-				int recved = recv(*i, buf, bufsize, 0);
-				udtforwardclient_send_udtsock(m_socketmap[*i], buf, bufsize);
+				int recved = recv(ssock, buf, bufsize, 0);
+				if (recved == 0 || recved == -1)
+				{
+					udtforwardclient_closesocket(usock, ssock);
+					continue;
+				}
+				udtforwardclient_send_udtsock(m_socketmap[ssock], buf, bufsize);
 			}
 			//
 		}
@@ -167,10 +176,12 @@ void * udtforwardclient::udtforwardclient_socks5(void *u)
 	if (udtforwardclient_sock5_hello(sock)==-1)
 	{
 		UDT::close(sock);
+		return NULL;
 	}
 	if (udtforwardclient_socks5_req(sock)==-1)
 	{
 		UDT::close(sock);
+		return NULL;
 	}
 
 
@@ -345,4 +356,13 @@ void  udtforwardclient::setnonblocking(int sock)
         perror("fcntl(sock,SETFL,opts)");
         exit(1);
     }
+}
+void udtforwardclient::udtforwardclient_closesocket(UDTSOCKET usock, int ssock)
+{
+	UDT::close(usock);
+	UDT::epoll_remove_usock(m_eid, usock);
+
+	UDT::epoll_remove_ssock(m_eid, ssock);
+	close(ssock);
+	m_socketmap.erase(ssock);
 }

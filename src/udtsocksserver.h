@@ -44,8 +44,7 @@ public:
 
 public:
 	static void   udtsocksserver_init();
-	static void * udtsocksserver_accept(void *psocket);
-	static void * udtsocksserver_epoll(void *peid);
+
 
 	//all notify_* functions called by udtsocksclient.
 //	void   udtsocksserver_notify_connected(int srvsock, bool bconnect, std::vector<unsigned char> &vec);
@@ -53,14 +52,12 @@ public:
 //	void   udtsocksserver_notify_forward(int srvsock, std::vector<unsigned char> &vec);
 	static udtsocksserver & get_instance();
 private:
-	static int m_socket;
-	static int m_eid;
-	static pthread_t m_epoll_thread;
-//	std::map<int,int> m_socket_status_map;//<socket, status>;//status:0-hello->2
-	static std::map<int,int> m_socket_pair;//<socket, UDTSOCKET>
+	static void * udtsocksserver_accept(void *psocket);
+	static void * udtsocksserver_epoll(void *peid);
 	static void setnonblocking(int sock);
 	static UDTSOCKET connectserver(void);
-
+	static int udtsocksserver_sourcesock_from_udt(UDTSOCKET usock);
+	static void udtsockserver_closesocket(UDTSOCKET usock, int ssock);
 
 //	int udtsocksserver_handle_hello(int sock, std::vector<unsigned char> &vec);
 //	int udtsocksserver_handle_auth(int sock, std::vector<unsigned char> &vec);
@@ -75,6 +72,10 @@ private:
 private:
 	static udtsocksserver * m_pinstance;
 	static pthread_mutex_t m_mutex;
+	static int m_socket;
+	static int m_eid;
+	static pthread_t m_epoll_thread;
+	static std::map<int,int> m_socket_pair;//<socket, UDTSOCKET>
 };
 
 #endif /* UDTSOCKSSERVER_H_ */
