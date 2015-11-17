@@ -39,7 +39,7 @@ void   udtforwardclient::udtforwardclient_init()
 }
 void udtforwardclient::udtforwardclient_initudtserver()
 {
-	setnonblocking(m_udtsock);
+	//setnonblocking(m_udtsock);
 	int events_read_write_error = 1|4|8;
 	UDT::epoll_add_usock(m_eid, m_udtsock, &events_read_write_error);
 	struct addrinfo hints = {0};
@@ -49,8 +49,8 @@ void udtforwardclient::udtforwardclient_initudtserver()
 	struct addrinfo *res = NULL;
 	std::string port = udtconfig::getlistenport();
 	getaddrinfo(NULL, port.c_str(), &hints, &res);
-	bind(m_udtsock, res->ai_addr, res->ai_addrlen);
-	listen(m_udtsock, 10);
+	UDT::bind(m_udtsock, res->ai_addr, res->ai_addrlen);
+	UDT::listen(m_udtsock, 10);
 
 }
 void * udtforwardclient::udtforwardclient_accept(void *u)
