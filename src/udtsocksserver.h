@@ -57,7 +57,7 @@ private:
 	static void setnonblocking(int sock);
 	static UDTSOCKET connectserver(void);
 	static int udtsocksserver_sourcesock_from_udt(UDTSOCKET usock);
-	static void udtsockserver_closesocket(UDTSOCKET usock, int ssock);
+	static void udtsocksserver_closesocket(UDTSOCKET usock, int ssock);
 
 //	int udtsocksserver_handle_hello(int sock, std::vector<unsigned char> &vec);
 //	int udtsocksserver_handle_auth(int sock, std::vector<unsigned char> &vec);

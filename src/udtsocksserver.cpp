@@ -77,6 +77,10 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 	while (true)
 	{
 		vec_buf.clear();
+		udtreadfds->clear();
+		udtwritefds->clear();
+		sysreadfds->clear();
+		syswritefds->clear();
 		//check socket status:
 		int res = UDT::epoll_wait(m_eid, udtreadfds, udtwritefds, msTimeOut, sysreadfds, syswritefds);
 		if (res<0)
@@ -95,25 +99,28 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 			int ssock = *i;
 			int usock = m_socket_pair[ssock];
 			int iread = recv(ssock, &vec_buf[0], vec_buf.max_size(), 0);
-			if (iread==0)
+			if (iread<=0)
 			{
 				//socket closed.
-				udtsockserver_closesocket(usock, ssock);
+				udtsocksserver_closesocket(usock, ssock);
 				continue;
 			}
-			UDT::send (usock, (char*)&vec_buf[0], iread, 0);
+			UDT::send (usock, (char*)&vec_buf[0], iread, 0);//socks5 request
 		}
 		for (auto i=udtreadfds->begin(); i!= udtreadfds->end(); i++)
 		{
 			int ssock = udtsocksserver_sourcesock_from_udt(*i);
+			if (ssock==-1)  continue;
 			int usock = *i;
+			vec_buf.resize(1024*10);
 			int recved = UDT::recv(usock, (char*)&vec_buf[0], vec_buf.max_size(), 0);
-			if (recved == 0)
+			if (recved <= 0)
 			{//socket close
-				udtsockserver_closesocket(usock, ssock);
+				perror(UDT::getlasterror_desc());
+				udtsocksserver_closesocket(usock, ssock);
 				continue;
 			}
-			send(ssock, (void*)&vec_buf[0], recved, 0);
+			send(ssock, (void*)&vec_buf[0], recved, 0);//socks5 response
 		}
 	}//endwhile
 	//error handle
@@ -121,13 +128,23 @@ end:
 	perror("udtsocksserver_epoll error");
 	return NULL;
 }
-void udtsocksserver::udtsockserver_closesocket(UDTSOCKET usock, int ssock)
+void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 {
-	UDT::close(usock);
-	UDT::epoll_remove_usock(m_eid, usock);
 
-	UDT::epoll_remove_ssock(m_eid, ssock);
-	close(ssock);
+	if (m_socket_pair[ssock] != usock)
+	{
+		perror("socket pair does not pair. pause!");
+		//pause();
+	}
+	if (usock!=0){
+		UDT::close(usock);
+		UDT::epoll_remove_usock(m_eid, usock);
+	}
+	if (ssock!=0)
+	{
+		UDT::epoll_remove_ssock(m_eid, ssock);
+		close(ssock);
+	}
 	m_socket_pair.erase(ssock);
 }
 int udtsocksserver::udtsocksserver_sourcesock_from_udt(UDTSOCKET usock)
@@ -139,12 +156,12 @@ int udtsocksserver::udtsocksserver_sourcesock_from_udt(UDTSOCKET usock)
 			return i->first;
 		}
 	}
-	perror("ERROR:unexpected syssocket in.");
+
 	return -1;
 }
 void * udtsocksserver::udtsocksserver_accept(void *psocket)
 {
-	//get socket
+	//get ssocket
 	int socket = *(int*)psocket;
 	sockaddr cliaddr = {0};
 
@@ -163,8 +180,11 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 			return NULL;
 		}
 		m_socket_pair.insert(std::pair<int,int>(clisocket, newclient));
-		int event_read = UDT_EPOLL_IN | UDT_EPOLL_ERR;
+		bool f = false;
+		UDT::setsockopt(newclient,0, UDT_RCVSYN, &f,sizeof(f));
+		int event_read = UDT_EPOLL_IN;
 		UDT::epoll_add_ssock(m_eid, clisocket, &event_read);
+		UDT::epoll_add_usock(m_eid, newclient, &event_read);
 
 	}//end while
 
