@@ -77,3 +77,14 @@ void output_content(std::vector<unsigned char> &t, int len)
 	}
 	std::cout<<std::endl;
 }
+void output_content(const char *t,int len)
+{
+	char buf[8] = {0};
+	for (auto i = 0; i<len; i++)
+	{
+		memset(buf, 0, 8);
+		sprintf(buf, "0x%.2x", t[i]);
+		std::cout << buf << " ";
+	}
+	std::cout<<std::endl;
+}

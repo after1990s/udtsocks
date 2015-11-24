@@ -41,5 +41,5 @@ public:
 	static int  recv_socks5_request(UDTSOCKET sock, std::vector<unsigned char> &vec);
 };
 void output_content(std::vector<unsigned char> &t,int);
-
+void output_content(const char *t,int);
 #endif /* SOCKS5PROTOCOL_H_ */

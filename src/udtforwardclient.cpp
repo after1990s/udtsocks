@@ -147,6 +147,11 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 void  udtforwardclient::udtforwardclient_send_udtsock(UDTSOCKET sock, const char * buf, int len)
 {
 	int reversed = len;
+	if (g_debug)
+	{
+		std::cout << "udtforwardclient sendto user:";
+		output_content(buf, len);
+	}
 	while (reversed !=0)
 	{
 		int writed = UDT::send(sock, buf, reversed, 0);
@@ -159,6 +164,11 @@ void  udtforwardclient::udtforwardclient_send_udtsock(UDTSOCKET sock, const char
 void  udtforwardclient::udtforwardclient_send_syssock(int sock, const char * buf, int len)
 {
 	int reversed = len;
+	if (g_debug)
+	{
+		std::cout << "udtforwardclient recv from user:";
+		output_content(buf, len);
+	}
 	while (reversed !=0)
 	{
 		int writed = send(sock, buf, reversed, 0);
