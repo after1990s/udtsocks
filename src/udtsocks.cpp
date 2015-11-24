@@ -17,27 +17,27 @@ void test()
 	std::cout << buf;
 }
 
-//int main(int argc, char* argv[])
-//{
-//	//test();
-//	if (argc==3 && argv[1][0] == 's')
-//	{
-//		udtconfig::setlistenport(argv[2]);
-//		udtforwardclient::udtforwardclient_init();
-//		for(;;)
-//				sleep(1000);
-//	}
-//	if (argc==5 && argv[1][0] == 'c')
-//	{
-//		udtconfig::setlistenport(argv[2]);
-//		udtconfig::setserveraddr(argv[3], argv[4]);
-//		udtsocksserver::udtsocksserver_init();
-//		for(;;)
-//			sleep(1000);
-//	}
-//
-//	printusage();
-//	return 0;
-//}
+int main(int argc, char* argv[])
+{
+	//test();
+	if (argc==3 && argv[1][0] == 's')
+	{
+		udtconfig::setlistenport(argv[2]);
+		udtforwardclient::udtforwardclient_init();
+		for(;;)
+				sleep(1000);
+	}
+	if (argc==5 && argv[1][0] == 'c')
+	{
+		udtconfig::setlistenport(argv[2]);
+		udtconfig::setserveraddr(argv[3], argv[4]);
+		udtsocksserver::udtsocksserver_init();
+		for(;;)
+			sleep(1000);
+	}
+
+	printusage();
+	return 0;
+}
 
 

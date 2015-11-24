@@ -119,6 +119,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 					int ssock = udtforwardclient_targetsocket_from_udtsocket(usock);
 					if (ssock==-1 || ssock==0)
 					{//remote close socket
+						perror(strerror(errno));
 						udtforwardclient_closesocket(usock, ssock);
 						continue;
 					}
