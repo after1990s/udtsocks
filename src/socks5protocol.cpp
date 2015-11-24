@@ -33,7 +33,10 @@ int  socks5protocol::recv_socks5_request(UDTSOCKET sock, std::vector<unsigned ch
 		//domain name
 		recved += UDT::recv(sock, (char*)&vec[recved], 1, 0);
 		int domainlen = vec[recved-1];
-		recved += UDT::recv(sock, (char*)&vec[recved], domainlen+sizeof(char), 0);
+
+		recved += UDT::recv(sock, (char*)&vec[recved], domainlen, 0);
+		//+short for the port number.
+		recved += UDT::recv(sock, (char*)&vec[recved], sizeof(short), 0);
 	}
 	else if (req->atype == SOCKS5_ATTYPE_IPV6)
 	{

@@ -34,13 +34,14 @@ void   udtforwardclient::udtforwardclient_init()
 	m_udtsock = UDT::socket(AF_INET,SOCK_STREAM, IPPROTO_UDP);
 	pthread_t tid;
 	//pthread_create(&tid, NULL, udtforwardclient_accept, &m_udtsock);
-	pthread_detach(tid);
+
 	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
+	pthread_detach(tid);
 }
 void udtforwardclient::udtforwardclient_initudtserver()
 {
 	//setnonblocking(m_udtsock);
-	int events_read_write_error = 1|4|8;
+	int events_read_write_error = UDT_EPOLL_IN|UDT_EPOLL_ERR ;
 	UDT::epoll_add_usock(m_eid, m_udtsock, &events_read_write_error);
 	struct addrinfo hints = {0};
 	hints.ai_family = AF_INET;
@@ -62,6 +63,9 @@ void * udtforwardclient::udtforwardclient_accept(void *u)
 	pthread_t tid;
 
 	UDTSOCKET clisock  = UDT::accept(sock, &addr, &addrlen);
+	//delete in udtforwardclient_socks5
+	UDTSOCKET *pclisock = new UDTSOCKET;
+	*pclisock = clisock;
 	if (clisock== UDT::INVALID_SOCK)
 	{
 		UDT::close(clisock);
@@ -72,7 +76,7 @@ void * udtforwardclient::udtforwardclient_accept(void *u)
 		UDT::close(clisock);
 		return NULL;
 	}
-	pthread_create(&tid, NULL, udtforwardclient_socks5, &clisock);
+	pthread_create(&tid, NULL, udtforwardclient_socks5, pclisock);
 	pthread_detach(tid);
 	return NULL;
 }
@@ -172,7 +176,9 @@ int udtforwardclient::udtforwardclient_targetsocket_from_udtsocket(UDTSOCKET soc
 }
 void * udtforwardclient::udtforwardclient_socks5(void *u)
 {//socks5 协议协商
-	UDTSOCKET sock = *(UDTSOCKET*)u;
+	UDTSOCKET *pu = (UDTSOCKET*)u;
+	UDTSOCKET sock = *pu;
+	delete pu;
 	if (udtforwardclient_sock5_hello(sock)==-1)
 	{
 		UDT::close(sock);
@@ -192,7 +198,11 @@ int   udtforwardclient::udtforwardclient_sock5_hello(UDTSOCKET sock)
 {
 	int returnvalue = -1;
 	socks5_method_req_t req = {0};
-	UDT::recv(sock, (char*)&req, sizeof(req), 0);
+	if (UDT::recv(sock, (char*)&req, sizeof(req), 0)<=0)
+	{
+		std::cout<< "UDT::recv error" <<std::endl;
+		return returnvalue;
+	}
 	if (req.ver != SOCKS5_VERSION)
 	{
 		return returnvalue;
@@ -236,7 +246,10 @@ int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 	int returnvalue = -1;
 	std::vector<unsigned char> vec;
 	//接收request
-	socks5protocol::recv_socks5_request(sock, vec);
+	if (socks5protocol::recv_socks5_request(sock, vec)==-1)
+	{
+		UDT::close(sock);
+	}
 	//检查request类型是connect
 	socks5_request_t *req = (socks5_request_t *)&vec[0];
 	if (req->cmd==SOCKS5_CMD_CONNECT)
@@ -245,15 +258,18 @@ int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 		int dstsock = 0;
 		if ((dstsock = udtforwardclient_sock5_tryconnect(vec)) != -1)
 		{
+			//回报成功消息
+			udtforwardclient_reply_success(sock);
 			//连接成功，增加一个记录
 			m_socketmap[dstsock] =  sock;
 			//将sock,dstsock加入异步列表
-			setnonblocking(dstsock);
-			setnonblocking(sock);
+			//setnonblocking(dstsock);
+			//setnonblocking(sock);
 			new autocritical(m_mutex);
 			int event_read_write = UDT_EPOLL_IN | UDT_EPOLL_ERR ;
 			UDT::epoll_add_ssock(m_eid, dstsock, &event_read_write);
 			UDT::epoll_add_usock(m_eid, sock, &event_read_write);
+			return 0;
 		}
 		else
 		{
@@ -277,14 +293,15 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 	int target_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	//vec是 socks5_request_t类型的数据。
 	socks5_request_t *req = (socks5_request_t *)&vec[0];
+	int port_offset = 0;
 	if (req->atype == SOCKS5_ATTYPE_IPV4)
 	{
 		int addrbegin = sizeof(socks5_request_t);
-		int addrport = addrbegin +  sizeof(socks5_request_t);
+		port_offset = addrbegin +  sizeof(socks5_request_t);
 		sockaddr_in addr = {0};
 		memcpy(&addr.sin_addr, &vec[addrbegin], sizeof(sockaddr_in));
 		addr.sin_family = AF_INET;
-		addr.sin_port = vec[addrport];//already network order.
+		addr.sin_port = vec[port_offset];//already network order.
 
 		if (connect(target_socket, (sockaddr*)&addr, sizeof(sockaddr)) == 0)
 		{
@@ -303,19 +320,23 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 		int domainlen = vec[domainbegin];
 		char *domain = new char[domainlen+1];
 		memset (domain, 0, domainlen+1);
-		memcpy (domain, &vec[domainbegin], domainlen);
+		memcpy (domain, &vec[domainbegin+1], domainlen);
 		//dns reslove
 		addrinfo ouraddrinfo = {0};
 		ouraddrinfo.ai_family = AF_INET;
-		ouraddrinfo.ai_socktype = SOCK_STREAM;
+		ouraddrinfo.ai_socktype = SOCK_DGRAM;
 		struct addrinfo *ptarget_addrinfo = NULL;
-		if (getaddrinfo(domain, "http",&ouraddrinfo, &ptarget_addrinfo) != 0)
+		if (getaddrinfo(domain, "http", &ouraddrinfo, &ptarget_addrinfo) != 0)
 		{
 			delete []domain;
 			freeaddrinfo(ptarget_addrinfo);
 			return -1;
 		}
 		delete []domain;
+		//reset port.
+		port_offset = sizeof(socks5_request_t) + domainlen + 1 ;
+		struct sockaddr_in *paddr = (struct sockaddr_in*)ptarget_addrinfo->ai_addr;
+		paddr->sin_port=ntohs(vec[port_offset]);//net order.
 		//connect
 		if (connect(target_socket, ptarget_addrinfo->ai_addr, ptarget_addrinfo->ai_addrlen) ==0 )
 		{
@@ -324,6 +345,7 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 			return target_socket;
 		}
 		//fail.
+		perror(strerror(errno));
 		freeaddrinfo(ptarget_addrinfo);
 		return -1;
 	}
@@ -336,6 +358,38 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 		return -1;
 	}
 	return -1;
+}
+void udtforwardclient::udtforwardclient_reply_success(UDTSOCKET sock)
+{
+	std::vector<unsigned char> vec;
+	vec.resize(1024);
+	socks5_response_t resp = {0};
+	resp.ver = 0x05;
+	resp.rsv = 0x00;
+	resp.cmd = 0x00;//success.
+	resp.atype = 0x01;//ipv4
+
+	addrinfo ouraddrinfo = {0};
+	ouraddrinfo.ai_family = AF_INET;
+	ouraddrinfo.ai_socktype = SOCK_DGRAM;
+	struct addrinfo *ptarget_addrinfo = NULL;
+	if (getaddrinfo("localhost", "http", &ouraddrinfo, &ptarget_addrinfo) != 0)
+	{
+
+		freeaddrinfo(ptarget_addrinfo);
+		return;
+	}
+	struct sockaddr_in* addr_in = (sockaddr_in*)ptarget_addrinfo->ai_addr;
+	int addr_offset = sizeof(socks5_response_t);
+	int addr_port_offset = addr_offset + sizeof(addr_in->sin_addr);
+	int vec_len = addr_port_offset +  sizeof(addr_in->sin_port);
+
+	memcpy(&vec[0], &resp, addr_offset);
+	memcpy(&vec[addr_offset], &addr_in->sin_addr, sizeof(addr_in->sin_addr));
+	memcpy(&vec[addr_port_offset], &addr_in->sin_port, sizeof(addr_in->sin_port));
+
+	UDT::send(sock, (char*)&vec[0], vec_len, 0);
+	freeaddrinfo(ptarget_addrinfo);
 }
 bool udtforwardclient::udtforwardclient_checkclientaddr(sockaddr addr)
 {//check is address in the black list.

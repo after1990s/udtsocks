@@ -7,6 +7,7 @@ int printusage()
 			"\tudtsocks c(lient) listen_port server port\n"
 	);
 }
+#ifndef DEBUG
 int main(int argc, char* argv[])
 {
 	if (argc==3 && argv[1][0] == 's')
@@ -28,3 +29,5 @@ int main(int argc, char* argv[])
 	printusage();
 	return 0;
 }
+
+#endif

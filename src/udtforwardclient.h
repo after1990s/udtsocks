@@ -13,6 +13,7 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <udt.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -50,6 +51,7 @@ private:
 	static void  udtforwardclient_send_syssock(int sock, const char * buf, int len);//be sure all data write to socket.
 	static void  udtforwardclient_send_udtsock(UDTSOCKET sock, const char * buf, int len);
 	static bool udtforwardclient_checkclientaddr(sockaddr addr);
+	static void udtforwardclient_reply_success(UDTSOCKET sock);
 	static void setnonblocking(int sock);
 	static void udtforwardclient_initudtserver(void);
 	static void udtforwardclient_closesocket(UDTSOCKET usock, int ssock);
