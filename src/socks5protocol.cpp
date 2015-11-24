@@ -69,6 +69,7 @@ void socks5protocol::response_hello_with_fail(std::vector<unsigned char> &vec)
 void output_content(std::vector<unsigned char> &t, int len)
 {
 	char buf[8] = {0};
+	len = len > 16 ? len : 16;
 	for (auto i = 0; i<len; i++)
 	{
 		memset(buf, 0, 8);
@@ -80,6 +81,7 @@ void output_content(std::vector<unsigned char> &t, int len)
 void output_content(const char *t,int len)
 {
 	char buf[8] = {0};
+	len = len > 16 ? len : 16;
 	for (auto i = 0; i<len; i++)
 	{
 		memset(buf, 0, 8);
