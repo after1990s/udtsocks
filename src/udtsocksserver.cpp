@@ -121,7 +121,6 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 			}
 			int usock = *i;
 			vec_buf.resize(1024);
-			int k=vec_buf.capacity();
 			int recved = UDT::recv(usock, (char*)&vec_buf[0], vec_buf.capacity(), 0);
 			if (recved <= 0)
 			{//socket close
@@ -195,7 +194,6 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 		}
 		m_socket_pair.insert(std::pair<int,int>(clisocket, newclient));
 		bool f = false;
-		UDT::setsockopt(newclient,0, UDT_RCVSYN, &f,sizeof(f));
 		int event_read = UDT_EPOLL_IN;
 		UDT::epoll_add_ssock(m_eid, clisocket, &event_read);
 		UDT::epoll_add_usock(m_eid, newclient, &event_read);

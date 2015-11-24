@@ -80,12 +80,12 @@ void output_content(std::vector<unsigned char> &t, int len)
 }
 void output_content(const char *t,int len)
 {
-	char buf[8] = {0};
-	len = len < 16 ? len : 16;
+	char buf[16] = {0};
+	len = len > 16 ? 16 : len;
 	for (auto i = 0; i<len; i++)
 	{
-		memset(buf, 0, 8);
-		sprintf(buf, "0x%.2x", t[i]);
+		memset(buf, 0, 16);
+		sprintf(buf, "0x%.2x", (unsigned char)t[i]);
 		std::cout << buf << " ";
 	}
 	std::cout<<std::endl;

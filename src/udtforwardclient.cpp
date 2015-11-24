@@ -138,7 +138,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 					udtforwardclient_closesocket(usock, ssock);
 					continue;
 				}
-				udtforwardclient_send_udtsock(m_socketmap[ssock], buf, bufsize);
+				udtforwardclient_send_udtsock(m_socketmap[ssock], buf, recved);
 			}
 			//
 		}
@@ -247,6 +247,11 @@ int   udtforwardclient::udtforwardclient_sock5_hello(UDTSOCKET sock)
 		returnvalue = 0;
 		std::vector<unsigned char> vec;
 		socks5protocol::response_hello_with_no_auth(vec);
+		if (g_debug)
+		{
+			std::cout << "udtforwardclient hello to user:";
+			output_content(vec, vec.size());
+		}
 		UDT::send(sock, (char*)&vec[0], vec.size(), 0);
 	}
 	else
@@ -254,6 +259,12 @@ int   udtforwardclient::udtforwardclient_sock5_hello(UDTSOCKET sock)
 		returnvalue = -1;
 		std::vector<unsigned char> vec;
 		socks5protocol::response_hello_with_fail(vec);
+		int i = vec.size();
+		if (g_debug)
+		{
+			std::cout << "udtforwardclient hello to user:";
+			output_content(vec, vec.size());
+		}
 		UDT::send(sock, (char*)&vec[0], vec.size(), 0);
 	}
 	delete[] methods;
@@ -408,6 +419,11 @@ void udtforwardclient::udtforwardclient_reply_success(UDTSOCKET sock)
 	memcpy(&vec[0], &resp, addr_offset);
 	memcpy(&vec[addr_offset], &addr_in->sin_addr, sizeof(addr_in->sin_addr));
 	memcpy(&vec[addr_port_offset], &addr_in->sin_port, sizeof(addr_in->sin_port));
+	if (g_debug)
+	{
+		std::cout<< "forwardclient connect success:";
+		output_content(vec, vec_len);
+	}
 
 	UDT::send(sock, (char*)&vec[0], vec_len, 0);
 	freeaddrinfo(ptarget_addrinfo);
