@@ -424,8 +424,8 @@ void  udtforwardclient::setnonblocking(int sock)
 }
 void udtforwardclient::udtforwardclient_closesocket(UDTSOCKET usock, int ssock)
 {
-	UDT::close(usock);
 	UDT::epoll_remove_usock(m_eid, usock);
+	UDT::close(usock);
 
 	UDT::epoll_remove_ssock(m_eid, ssock);
 	close(ssock);
