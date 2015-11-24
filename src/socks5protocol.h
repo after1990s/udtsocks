@@ -40,5 +40,6 @@ public:
 	static void response_hello_with_fail(std::vector<unsigned char> &vec);
 	static int  recv_socks5_request(UDTSOCKET sock, std::vector<unsigned char> &vec);
 };
+void output_content(std::vector<unsigned char> &t,int);
 
 #endif /* SOCKS5PROTOCOL_H_ */

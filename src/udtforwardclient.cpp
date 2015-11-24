@@ -11,6 +11,7 @@ pthread_mutex_t udtforwardclient::m_mutex;
 UDTSOCKET udtforwardclient::m_udtsock = 0;
 int udtforwardclient::m_eid = 0;
 std::map<int, UDTSOCKET> udtforwardclient::m_socketmap;
+extern const bool g_debug;
 udtforwardclient::udtforwardclient() {
 
 
@@ -179,17 +180,28 @@ void * udtforwardclient::udtforwardclient_socks5(void *u)
 	UDTSOCKET *pu = (UDTSOCKET*)u;
 	UDTSOCKET sock = *pu;
 	delete pu;
+	if (g_debug)
+	{
+		perror("forwardclient:new client in. try handshake.");
+	}
 	if (udtforwardclient_sock5_hello(sock)==-1)
 	{
 		UDT::close(sock);
 		return NULL;
+	}
+	if (g_debug)
+	{
+		perror("forwardclient:handshake success, receive request.");
 	}
 	if (udtforwardclient_socks5_req(sock)==-1)
 	{
 		UDT::close(sock);
 		return NULL;
 	}
-
+	if (g_debug)
+	{
+		perror("forwardclient:successfully build tunnel");
+	}
 
 return NULL;
 }
@@ -262,9 +274,6 @@ int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 			udtforwardclient_reply_success(sock);
 			//连接成功，增加一个记录
 			m_socketmap[dstsock] =  sock;
-			//将sock,dstsock加入异步列表
-			//setnonblocking(dstsock);
-			//setnonblocking(sock);
 			new autocritical(m_mutex);
 			int event_read_write = UDT_EPOLL_IN | UDT_EPOLL_ERR ;
 			UDT::epoll_add_ssock(m_eid, dstsock, &event_read_write);
@@ -296,13 +305,14 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 	int port_offset = 0;
 	if (req->atype == SOCKS5_ATTYPE_IPV4)
 	{
+		const int addrlen = 4;
 		int addrbegin = sizeof(socks5_request_t);
-		port_offset = addrbegin +  sizeof(socks5_request_t);
+		port_offset = addrlen +  sizeof(socks5_request_t) + 1;
 		sockaddr_in addr = {0};
-		memcpy(&addr.sin_addr, &vec[addrbegin], sizeof(sockaddr_in));
+		memcpy(&addr.sin_addr, &vec[addrbegin], sizeof(struct in_addr));
 		addr.sin_family = AF_INET;
-		addr.sin_port = vec[port_offset];//already network order.
-
+		//memcpy(&addr.sin_port, &vec[port_offset], sizeof(uint16_t));//already network order.
+		addr.sin_port = ntohs(vec[port_offset]);
 		if (connect(target_socket, (sockaddr*)&addr, sizeof(sockaddr)) == 0)
 		{
 			return target_socket;

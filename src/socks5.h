@@ -1,7 +1,6 @@
 #ifndef _SOCKS5_H
 #define _SOCKS5_H
 //#pragma pack(1)
-
 #define SOCKS5_VERSION 0x05
 #define SOCKS5_CMD_CONNECT 0x01
 #define SOCKS5_IPV4 0x01
@@ -37,4 +36,6 @@ typedef struct _socks5_request_t
 typedef socks5_request_t socks5_response_t;
 
 //#pragma pack()
+const bool g_debug = true;
+
 #endif

@@ -28,6 +28,7 @@
 #include "socks5.h"
 #include "udtconfig.h"
 #include "autocritical.h"
+#include "socks5protocol.h"
 //implement socks5 proxy server. not implement auth.
 //only accept method CONNECT.
 //socks5 proxy not handle connect status.

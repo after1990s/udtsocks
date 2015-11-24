@@ -26,7 +26,7 @@ int  socks5protocol::recv_socks5_request(UDTSOCKET sock, std::vector<unsigned ch
 	if (req->atype == SOCKS5_ATTYPE_IPV4)
 	{
 		//ipv4 addr.
-		recved += UDT::recv(sock, (char*)&vec[recved], sizeof(sockaddr)+sizeof(char), 0);
+		recved += UDT::recv(sock, (char*)&vec[recved], sizeof(in_addr)+sizeof(uint16_t), 0);
 	}
 	else if(req->atype == SOCKS5_ATTYPE_DOMAIN)
 	{
@@ -65,4 +65,15 @@ void socks5protocol::response_hello_with_fail(std::vector<unsigned char> &vec)
 	vec[0] = 0x05;
 	vec[1] = 0xff;
 	return;
+}
+void output_content(std::vector<unsigned char> &t, int len)
+{
+	char buf[8] = {0};
+	for (auto i = 0; i<len; i++)
+	{
+		memset(buf, 0, 8);
+		sprintf(buf, "0x%.2x", t[i]);
+		std::cout << buf << " ";
+	}
+	std::cout<<std::endl;
 }

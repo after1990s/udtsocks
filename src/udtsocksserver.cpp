@@ -10,7 +10,6 @@ int udtsocksserver::m_socket;
 int udtsocksserver::m_eid;
 pthread_mutex_t udtsocksserver::m_mutex;
 pthread_t udtsocksserver::m_epoll_thread = 0;
-
 std::map<int,int> udtsocksserver::m_socket_pair;//<socket, UDTSOCKET>
 
 udtsocksserver::udtsocksserver() {
@@ -98,27 +97,42 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 			}
 			int ssock = *i;
 			int usock = m_socket_pair[ssock];
-			int iread = recv(ssock, &vec_buf[0], vec_buf.max_size(), 0);
+			int iread = recv(ssock, &vec_buf[0], vec_buf.capacity(), 0);
 			if (iread<=0)
 			{
 				//socket closed.
 				udtsocksserver_closesocket(usock, ssock);
 				continue;
 			}
+
+			if (g_debug){
+				std::cout <<"recv from user:";
+				output_content(vec_buf, iread);
+			}
 			UDT::send (usock, (char*)&vec_buf[0], iread, 0);//socks5 request
 		}
 		for (auto i=udtreadfds->begin(); i!= udtreadfds->end(); i++)
 		{
 			int ssock = udtsocksserver_sourcesock_from_udt(*i);
-			if (ssock==-1)  continue;
+			if (ssock==-1)
+			{
+				udtsocksserver_closesocket(*i, 0);
+				continue;
+			}
 			int usock = *i;
-			vec_buf.resize(1024*10);
-			int recved = UDT::recv(usock, (char*)&vec_buf[0], vec_buf.max_size(), 0);
+			vec_buf.resize(1024);
+			int k=vec_buf.capacity();
+			int recved = UDT::recv(usock, (char*)&vec_buf[0], vec_buf.capacity(), 0);
 			if (recved <= 0)
 			{//socket close
 				perror(UDT::getlasterror_desc());
 				udtsocksserver_closesocket(usock, ssock);
 				continue;
+			}
+			if(g_debug)
+			{
+				std::cout <<"recv from  remote:";
+				output_content(vec_buf, recved);
 			}
 			send(ssock, (void*)&vec_buf[0], recved, 0);//socks5 response
 		}
@@ -133,12 +147,12 @@ void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 
 	if (m_socket_pair[ssock] != usock)
 	{
-		perror("socket pair does not pair. pause!");
+		perror("Warning:socket pair does not pair.");
 		//pause();
 	}
 	if (usock!=0){
-		UDT::close(usock);
 		UDT::epoll_remove_usock(m_eid, usock);
+		UDT::close(usock);
 	}
 	if (ssock!=0)
 	{
