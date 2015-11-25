@@ -215,6 +215,7 @@ UDTSOCKET udtsocksserver::connectserver(void)
 
 	if (UDT::connect(sock, (sockaddr*)addr.ai_addr, addr.ai_addrlen) != 0)
 	{
+		perror( UDT::getlasterror_desc());
 		UDT::close(sock);
 		return UDTSOCKET_FAIL;
 	}
