@@ -123,7 +123,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 						udtforwardclient_closesocket(usock, ssock);
 						continue;
 					}
-					udtforwardclient_send_syssock(ssock, buf, recved);
+					send_syssock(ssock, buf, recved);
 				}
 			}
 
@@ -138,46 +138,15 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 					udtforwardclient_closesocket(usock, ssock);
 					continue;
 				}
-				udtforwardclient_send_udtsock(m_socketmap[ssock], buf, recved);
+				send_udtsock(m_socketmap[ssock], buf, recved);
 			}
 			//
 		}
 	return NULL;
 }
 
-void  udtforwardclient::udtforwardclient_send_udtsock(UDTSOCKET sock, const char * buf, int len)
-{
-	int reversed = len;
-	if (g_debug)
-	{
-		std::cout << "udtforwardclient sendto user:";
-		output_content(buf, len);
-	}
-	while (reversed !=0)
-	{
-		int writed = UDT::send(sock, buf, reversed, 0);
-		if (writed == -1)
-			break;
-		reversed -= writed;
-	}
-}
 
-void  udtforwardclient::udtforwardclient_send_syssock(int sock, const char * buf, int len)
-{
-	int reversed = len;
-	if (g_debug)
-	{
-		std::cout << "udtforwardclient recv from user:";
-		output_content(buf, len);
-	}
-	while (reversed !=0)
-	{
-		int writed = send(sock, buf, reversed, 0);
-		if (writed == -1)
-			break;
-		reversed -= writed;
-	}
-}
+
 int udtforwardclient::udtforwardclient_targetsocket_from_udtsocket(UDTSOCKET sock)
 {
 	for (auto i=m_socketmap.begin(); i!= m_socketmap.end(); i++)

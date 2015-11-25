@@ -26,7 +26,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-
+#include "socks5.h"
+#include "socks5protocol.h"
 void setudtnonblockingsend(UDTSOCKET sock);
 void setsysnonblockingsend(int sock);
+int send_syssock(int sock, const char * buf, int len);
+int send_udtsock(UDTSOCKET sock, const char * buf, int len);
 #endif /* UDTWRAPPER_H_ */

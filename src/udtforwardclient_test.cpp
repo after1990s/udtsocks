@@ -29,11 +29,8 @@
 //#include "udtconfig.h"
 //#include "udtforwardclient.h"
 //
-//int main(void)//ipv4 test
+//void * test_ipv4(void* u)//ipv4 test
 //{
-//	udtconfig::setlistenport("8008");
-//		udtforwardclient::udtforwardclient_init();
-//
 //		UDTSOCKET sock = UDT::socket(AF_INET, SOCK_STREAM, IPPROTO_UDP);
 //		struct addrinfo hint={0}, *peer;
 //		hint.ai_family = AF_INET;
@@ -84,9 +81,29 @@
 //		int i = UDT::send(sock, http_get, sizeof(http_get), 0);
 //		memset (buf, '1', 32);
 //		i = UDT::recv(sock, buf, 32, 0);
-//		UDT::close(sock);
 //		freeaddrinfo(peer);
-//		sleep(100);
+//		return NULL;
+//}
+//int main(void)
+//{
+//	udtconfig::setlistenport("8008");
+//	udtforwardclient::udtforwardclient_init();
+//	for (int i=0; i<10; i++)
+//	{
+//		pthread_t tid = 0;
+//		pthread_create(&tid, NULL, test_ipv4, NULL);
+//		pthread_detach(tid);
+//
+//	}
+//	sleep(1);
+//	for (int i=0; i<20; i++)
+//	{
+//		pthread_t tid = 0;
+//		pthread_create(&tid, NULL, test_ipv4, NULL);
+//		pthread_detach(tid);
+//
+//	}
+//	pause();
 //}
 //int main0(void)//domain test
 //{

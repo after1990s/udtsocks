@@ -186,10 +186,11 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 		// add socket to epoll eid. add socket to socket map,should use mutex proctect.
 		new autocritical(m_mutex);
 		UDTSOCKET newclient = connectserver();
-		if (newclient==-1)
+		if (newclient == UDTSOCKET_FAIL)
 		{
 			close(clisocket);
-			perror("connect server failed \n");
+			perror("connect server failed :");
+			//todo: rely fail msg to user.
 			return NULL;
 		}
 		m_socket_pair.insert(std::pair<int,int>(clisocket, newclient));

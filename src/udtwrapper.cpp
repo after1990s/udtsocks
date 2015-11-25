@@ -6,7 +6,7 @@
  */
 
 #include "udtwrapper.h"
-
+extern const bool g_debug;
 void setudtnonblockingsend(UDTSOCKET sock)
 {
 	bool bfalse = false;
@@ -27,4 +27,38 @@ void setsysnonblockingsend(int sock)
         perror("fcntl(sock,SETFL,opts)");
         exit(1);
     }
+}
+int send_udtsock(UDTSOCKET sock, const char * buf, int len)
+{
+	int reversed = len;
+	if (g_debug)
+	{
+		std::cout << "udtforwardclient sendto user:";
+		output_content(buf, len);
+	}
+	while (reversed  > 0)
+	{
+		int writed = UDT::send(sock, buf, reversed, 0);
+		if (writed == -1)
+			break;
+		reversed -= writed;
+	}
+	return len;
+}
+int send_syssock(int sock, const char * buf, int len)
+{
+	int reversed = len;
+	if (g_debug)
+	{
+		std::cout << "udtforwardclient recv from user:";
+		output_content(buf, len);
+	}
+	while (reversed > 0)
+	{
+		int writed = send(sock, buf, reversed, 0);
+		if (writed == -1)
+			break;
+		reversed -= writed;
+	}
+	return len;
 }

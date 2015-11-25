@@ -48,8 +48,8 @@ private:
 	static int   udtforwardclient_socks5_req(UDTSOCKET sock);
 	static int   udtforwardclient_sock5_tryconnect(std::vector<unsigned char> &vec);
 	static int   udtforwardclient_targetsocket_from_udtsocket(UDTSOCKET sock);//from udtsocket get syssocket.
-	static void  udtforwardclient_send_syssock(int sock, const char * buf, int len);//be sure all data write to socket.
-	static void  udtforwardclient_send_udtsock(UDTSOCKET sock, const char * buf, int len);
+	//static void  udtforwardclient_send_syssock(int sock, const char * buf, int len);//be sure all data write to socket.
+	//static void  udtforwardclient_send_udtsock(UDTSOCKET sock, const char * buf, int len);
 	static bool udtforwardclient_checkclientaddr(sockaddr addr);
 	static void udtforwardclient_reply_success(UDTSOCKET sock);
 	static void setnonblocking(int sock);

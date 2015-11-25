@@ -40,8 +40,13 @@ void udtconfig::setserveraddr(char *addr, char* port)
 	struct addrinfo hints = {0};
 	hints.ai_family  = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
 	struct addrinfo *res = NULL;
-	getaddrinfo(addr, port, &hints, &res);
+	if (getaddrinfo(addr, port, &hints, &res) != 0)
+	{
+		perror("get server address failed.");
+		return ;
+	}
 
 	memset (&m_config.remote_server_addr, 0, sizeof(m_config.remote_server_addr));
 	memcpy (&m_config.remote_server_addr, res, sizeof(m_config.remote_server_addr));
