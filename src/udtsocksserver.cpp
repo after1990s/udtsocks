@@ -92,7 +92,15 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 		{
 			if (*i == m_socket)
 			{//new connection
+				if (g_debug){
+					std::cout <<"new counnection come, try accept";
+					output_content(vec_buf, 0);
+				}
 				udtsocksserver_accept(&m_socket);
+				if (g_debug){
+					std::cout <<"new counnection comes, accept successful";
+					output_content(vec_buf, 0);
+				}
 				continue;
 			}
 			int ssock = *i;
@@ -211,13 +219,25 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 UDTSOCKET udtsocksserver::connectserver(void)
 {
 	UDTSOCKET sock = UDT::socket(AF_INET, SOCK_STREAM, IPPROTO_UDP);
-	struct addrinfo addr =  udtconfig::getserveraddr();
-
-	if (UDT::connect(sock, (sockaddr*)addr.ai_addr, addr.ai_addrlen) != 0)
+	struct sockaddr addr =  udtconfig::getserveraddr();
+	struct sockaddr dst = addr;
+	if (g_debug){
+		std::cout <<"try connect server";
+		output_content(NULL, 0);
+	}
+	if (UDT::connect(sock, (sockaddr*)&dst, sizeof(dst)) != 0)
 	{
+		if (g_debug){
+			std::cout <<"connect server failed";
+			output_content(NULL, 0);
+		}
 		perror( UDT::getlasterror_desc());
 		UDT::close(sock);
 		return UDTSOCKET_FAIL;
+	}
+	if (g_debug){
+		std::cout <<"end connect server";
+		output_content(NULL, 0);
 	}
 	setudtnonblockingsend(sock);
 	return sock;

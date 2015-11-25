@@ -76,6 +76,21 @@ void output_content(std::vector<unsigned char> &t, int len)
 		sprintf(buf, "0x%.2x", t[i]);
 		std::cout << buf << " ";
 	}
+	std::cout<<"\n";
+
+	std::cout << "srv addr:";
+	struct sockaddr addrinf =  udtconfig::getserveraddr();
+	unsigned char *p = (unsigned char*)&addrinf;
+	if (p[0] == 0x00)
+	{
+		asm("int $0x03");
+	}
+	for (auto i=0; i<9; i++)
+	{
+		memset(buf, 0, 8);
+		sprintf(buf, "0x%.2x", (unsigned char)p[i]);
+		std::cout << buf << " ";
+	}
 	std::cout<<std::endl;
 }
 void output_content(const char *t,int len)
@@ -86,6 +101,22 @@ void output_content(const char *t,int len)
 	{
 		memset(buf, 0, 16);
 		sprintf(buf, "0x%.2x", (unsigned char)t[i]);
+		std::cout << buf << " ";
+	}
+	std::cout<<"\n";
+
+	std::cout << "srv addr:";
+	struct sockaddr addrinf =  udtconfig::getserveraddr();
+	unsigned char *p = (unsigned char*)&addrinf;
+
+	if (p[0] == 0x00)
+	{
+		asm("int $0x03");
+	}
+	for (auto i=0; i<sizeof(sockaddr); i++)
+	{
+		memset(buf, 0, 16);
+		sprintf(buf, "0x%.2x", (unsigned char)p[i]);
 		std::cout << buf << " ";
 	}
 	std::cout<<std::endl;

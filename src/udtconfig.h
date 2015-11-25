@@ -38,7 +38,7 @@ public:
 	virtual ~udtconfig();
 
 	static void parseconfig();
-	static struct addrinfo getserveraddr();
+	static struct sockaddr getserveraddr();
 	static std::string  getlistenport();
 
 	static void setlistenport(char *port);

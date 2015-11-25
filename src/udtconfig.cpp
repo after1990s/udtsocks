@@ -21,9 +21,9 @@ void udtconfig::parseconfig()
 	//demon
 	return ;
 }
-struct addrinfo udtconfig::getserveraddr()
+struct sockaddr udtconfig::getserveraddr()
 {
-	return m_config.remote_server_addr;
+	return *m_config.remote_server_addr.ai_addr;
 }
 std::string udtconfig::getlistenport()
 {
@@ -50,5 +50,10 @@ void udtconfig::setserveraddr(char *addr, char* port)
 
 	memset (&m_config.remote_server_addr, 0, sizeof(m_config.remote_server_addr));
 	memcpy (&m_config.remote_server_addr, res, sizeof(m_config.remote_server_addr));
+
+	struct sockaddr *paddr = new struct sockaddr;//never free this block mem.
+	memcpy (paddr, res->ai_addr, sizeof(struct sockaddr));
+	m_config.remote_server_addr.ai_addr = paddr;
+
 	freeaddrinfo(res);
 }
