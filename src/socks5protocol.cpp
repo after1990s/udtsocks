@@ -8,12 +8,12 @@
 #include "socks5protocol.h"
 
 socks5protocol::socks5protocol() {
-	// TODO Auto-generated constructor stub
+
 
 }
 
 socks5protocol::~socks5protocol() {
-	// TODO Auto-generated destructor stub
+
 }
 
 int  socks5protocol::recv_socks5_request(UDTSOCKET sock, std::vector<unsigned char> &vec)
@@ -41,12 +41,12 @@ int  socks5protocol::recv_socks5_request(UDTSOCKET sock, std::vector<unsigned ch
 	else if (req->atype == SOCKS5_ATTYPE_IPV6)
 	{
 		//ipv6 not support
-		return -1;
+		return UDTSOCKET_FAIL;
 	}
 	else
 	{
 		//no such type
-		return -1;
+		return UDTSOCKET_FAIL;
 	}
 	return recved;
 }

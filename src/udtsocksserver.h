@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include "udtwrapper.h"
 #include "socks5.h"
 #include "udtconfig.h"
 #include "autocritical.h"
@@ -55,7 +56,6 @@ public:
 private:
 	static void * udtsocksserver_accept(void *psocket);
 	static void * udtsocksserver_epoll(void *peid);
-	static void setnonblocking(int sock);
 	static UDTSOCKET connectserver(void);
 	static int udtsocksserver_sourcesock_from_udt(UDTSOCKET usock);
 	static void udtsocksserver_closesocket(UDTSOCKET usock, int ssock);

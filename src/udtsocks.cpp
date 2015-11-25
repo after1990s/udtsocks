@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 	}
 
 	printusage();
-	return 0;
+	return UDTSOCKET_SUCCESS;
 }
 
 

@@ -13,6 +13,9 @@
 #define SOCKS5_ATTYPE_IPV4 0x01
 #define SOCKS5_ATTYPE_DOMAIN 0x03
 #define SOCKS5_ATTYPE_IPV6 0x04
+
+#define UDTSOCKET_FAIL (-1)
+#define UDTSOCKET_SUCCESS (0)
 typedef struct _socks5_method_req_t
 {
     uint8_t ver;

@@ -2,7 +2,7 @@
  * udtforwardclient.h
  *
  *  Created on: Nov 9, 2015
- *      Author: administrator
+ *  Author: administrator
  */
 
 #ifndef UDTFORWARDCLIENT_H_
@@ -25,12 +25,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include "udtwrapper.h"
 #include "autocritical.h"
 #include "socks5.h"
 #include "socks5protocol.h"
 #include "udtconfig.h"
 //run outside firewall.
-//TODO:syssock close not handle.udtsock close not handle
 class udtforwardclient {
 public:
 	udtforwardclient();
@@ -53,6 +53,7 @@ private:
 	static bool udtforwardclient_checkclientaddr(sockaddr addr);
 	static void udtforwardclient_reply_success(UDTSOCKET sock);
 	static void setnonblocking(int sock);
+
 	static void udtforwardclient_initudtserver(void);
 	static void udtforwardclient_closesocket(UDTSOCKET usock, int ssock);
 private:

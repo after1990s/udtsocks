@@ -13,12 +13,12 @@ pthread_t udtsocksserver::m_epoll_thread = 0;
 std::map<int,int> udtsocksserver::m_socket_pair;//<socket, UDTSOCKET>
 
 udtsocksserver::udtsocksserver() {
-	// TODO Auto-generated constructor stub
+
 
 }
 
 udtsocksserver::~udtsocksserver() {
-	// TODO Auto-generated destructor stub
+	
 	UDT::cleanup();
 }
 
@@ -26,7 +26,7 @@ udtsocksserver::~udtsocksserver() {
 void udtsocksserver::udtsocksserver_init()
 {
 	pthread_mutex_init(&m_mutex, NULL);
-	m_epoll_thread = NULL;
+	m_epoll_thread = 0;
 	UDT::startup();
 	//inital socket
 	udtsocksserver::m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -63,7 +63,7 @@ void udtsocksserver::udtsocksserver_init()
 void * udtsocksserver::udtsocksserver_epoll(void *peid)
 {
 	//while : wait epoll
-	const int epoll_event_size = 20;
+	//const int epoll_event_size = 20;
 
 	std::set<UDTSOCKET>* udtreadfds = new  std::set<UDTSOCKET>();
 	std::set<UDTSOCKET>* udtwritefds= new std::set<UDTSOCKET>();
@@ -137,7 +137,7 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 		}
 	}//endwhile
 	//error handle
-end:
+
 	perror("udtsocksserver_epoll error");
 	return NULL;
 }
@@ -170,7 +170,7 @@ int udtsocksserver::udtsocksserver_sourcesock_from_udt(UDTSOCKET usock)
 		}
 	}
 
-	return -1;
+	return UDTSOCKET_FAIL;
 }
 void * udtsocksserver::udtsocksserver_accept(void *psocket)
 {
@@ -182,7 +182,7 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 		unsigned int addrlen = sizeof(sockaddr);
 		int clisocket = accept(socket, &cliaddr, &addrlen);
 		//set socket to async.
-		setnonblocking(clisocket);
+		setsysnonblockingsend(clisocket);
 		// add socket to epoll eid. add socket to socket map,should use mutex proctect.
 		new autocritical(m_mutex);
 		UDTSOCKET newclient = connectserver();
@@ -193,7 +193,7 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 			return NULL;
 		}
 		m_socket_pair.insert(std::pair<int,int>(clisocket, newclient));
-		bool f = false;
+		//bool f = false;
 		int event_read = UDT_EPOLL_IN;
 		UDT::epoll_add_ssock(m_eid, clisocket, &event_read);
 		UDT::epoll_add_usock(m_eid, newclient, &event_read);
@@ -203,22 +203,6 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 
 	//error handle.
 	return NULL;
-}
-void udtsocksserver::setnonblocking(int sock)
-{
-    int opts;
-    opts=fcntl(sock,F_GETFL);
-    if(opts<0)
-    {
-        perror("fcntl(sock,GETFL)");
-        exit(1);
-    }
-    opts = opts|O_NONBLOCK;
-    if(fcntl(sock,F_SETFL,opts)<0)
-    {
-        perror("fcntl(sock,SETFL,opts)");
-        exit(1);
-    }
 }
 
 
@@ -231,12 +215,13 @@ UDTSOCKET udtsocksserver::connectserver(void)
 	if (UDT::connect(sock, (sockaddr*)addr.ai_addr, addr.ai_addrlen) != 0)
 	{
 		UDT::close(sock);
-		return -1;
+		return UDTSOCKET_FAIL;
 	}
+	setudtnonblockingsend(sock);
 	return sock;
 }
 ////read data ,return 1.
-////socket closed, return 0.
+////socket closed, return UDTSOCKET_SUCCESS.
 //int udtsocksserver::udtsocksserver_recv_all(int sock, std::vector<unsigned char> &vec)
 //{
 //	const int vec_default_size = 1024;
@@ -266,10 +251,10 @@ UDTSOCKET udtsocksserver::connectserver(void)
 //				continue;
 //			};
 //			udtsocksserver_handle_close(sock, vec);
-//			return 0;
+//			return UDTSOCKET_SUCCESS;
 //		}
 //	}//end while
-//	return -1;
+//	return UDTSOCKET_FAIL;
 //}
 //
 //int  udtsocksserver::udtsocksserver_handle_hello(int sock, std::vector<unsigned char> &vec)
@@ -278,7 +263,7 @@ UDTSOCKET udtsocksserver::connectserver(void)
 //	if (m_socket_status_map[sock]!=SOCKSHELLO)
 //	{
 //		perror("udtsocksserver_handle_hello: status incorrect");
-//		return -1;
+//		return UDTSOCKET_FAIL;
 //	}
 //	//if it was correct hello message
 //	//we don't check all methods
@@ -293,11 +278,11 @@ UDTSOCKET udtsocksserver::connectserver(void)
 //		//set sock status to require
 //		m_socket_status_map[sock] = SOCKSREQUIRE;
 //	}
-//	return 0;
+//	return UDTSOCKET_SUCCESS;
 //}
 //int  udtsocksserver::udtsocksserver_handle_auth(int sock, std::vector<unsigned char> &vec)
 //{
-//	return -1;
+//	return UDTSOCKET_FAIL;
 //}
 //int udtsocksserver::udtsocksserver_handle_require(int sock, std::vector<unsigned char> &vec)
 //{
@@ -305,7 +290,7 @@ UDTSOCKET udtsocksserver::connectserver(void)
 //	if (m_socket_status_map[sock]!=SOCKSREQUIRE)
 //	{
 //		perror("udtsocksserver_handle_require: status incorrect");
-//		return -1;
+//		return UDTSOCKET_FAIL;
 //	}
 //	//check require class
 //	switch(vec[1])
@@ -315,18 +300,18 @@ UDTSOCKET udtsocksserver::connectserver(void)
 //			//notify udtsocksclient one sock require connect
 //		get_udtclient().udtsocksclient_notify_connect(sock, vec);
 //			//if connect success , udtsocksclient  should set sock status.
-//		return 0;
+//		return UDTSOCKET_SUCCESS;
 //	//case bind
 //	case 2:
 //		//not implement
-//		return -1;
+//		return UDTSOCKET_FAIL;
 //	//case UDP ASSOCIATE
 //	case 3:
 //		//not implement
-//		return -1;
+//		return UDTSOCKET_FAIL;
 //	}
 //
-//	return 0;
+//	return UDTSOCKET_SUCCESS;
 //}
 //int  udtsocksserver::udtsocksserver_handle_connect(int sock, std::vector<unsigned char> &vec)
 //{
@@ -334,11 +319,11 @@ UDTSOCKET udtsocksserver::connectserver(void)
 //	if (m_socket_status_map[sock]!=SOCKSCONNECTED)
 //	{
 //		perror("udtsocksserver_handle_connect: status incorrect");
-//				return -1;
+//				return UDTSOCKET_FAIL;
 //	}
 //	//notify udtsocksclient send on message.
 //	get_udtclient().udtsocksclient_notify_send(sock, vec);
-//	return 0;
+//	return UDTSOCKET_SUCCESS;
 //}
 //int udtsocksserver::udtsocksserver_handle_close(int sock, std::vector<unsigned char> &vec)
 //{
@@ -354,7 +339,7 @@ UDTSOCKET udtsocksserver::connectserver(void)
 //	close(sock);
 //	//notify udtsocksclient sock close.
 //	get_udtclient().udtsocksclient_notify_close(sock);
-//	return 0;
+//	return UDTSOCKET_SUCCESS;
 //}
 //udtsocksclient & udtsocksserver::get_udtclient()
 //{

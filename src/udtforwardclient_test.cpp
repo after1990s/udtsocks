@@ -42,12 +42,12 @@
 //		if (0!=getaddrinfo("localhost", "8008", &hint, &peer))
 //		{
 //			std::cout << "error get addrinfo : localhost" << std::endl;
-//			return 0;
+//			return UDTSOCKET_SUCCESS;
 //		}
 //		if (UDT::ERROR == UDT::connect(sock, peer->ai_addr, peer->ai_addrlen))
 //		{
 //			std::cout << "udt::connect error: localhost" << std::endl;
-//				return 0;
+//				return UDTSOCKET_SUCCESS;
 //		}
 //		char buf[32] = {0};
 //		buf[0] = 0x05;
@@ -101,12 +101,12 @@
 //	if (0!=getaddrinfo("localhost", "8008", &hint, &peer))
 //	{
 //		std::cout << "error get addrinfo : localhost" << std::endl;
-//		return 0;
+//		return UDTSOCKET_SUCCESS;
 //	}
 //	if (UDT::ERROR == UDT::connect(sock, peer->ai_addr, peer->ai_addrlen))
 //	{
 //		std::cout << "udt::connect error: localhost" << std::endl;
-//			return 0;
+//			return UDTSOCKET_SUCCESS;
 //	}
 //	char buf[32] = {0};
 //	buf[0] = 0x05;

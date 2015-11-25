@@ -8,12 +8,12 @@
 #include "udtconfig.h"
 CONFIG udtconfig::m_config;
 udtconfig::udtconfig() {
-	// TODO Auto-generated constructor stub
+
 
 }
 
 udtconfig::~udtconfig() {
-	// TODO Auto-generated destructor stub
+	
 }
 
 void udtconfig::parseconfig()
