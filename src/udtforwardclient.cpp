@@ -38,6 +38,10 @@ void   udtforwardclient::udtforwardclient_init()
 
 	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
 	pthread_detach(tid);
+	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
+	pthread_detach(tid);
+	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
+	pthread_detach(tid);
 }
 void udtforwardclient::udtforwardclient_initudtserver()
 {
