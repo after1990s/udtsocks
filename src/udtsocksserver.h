@@ -76,7 +76,7 @@ private:
 	static int m_socket;
 	static int m_eid;
 	static pthread_t m_epoll_thread;
-	static std::map<int,int> m_socket_pair;//<socket, UDTSOCKET>
+	static std::map<int,int> m_socketmap;//<socket, UDTSOCKET>
 };
 
 #endif /* UDTSOCKSSERVER_H_ */

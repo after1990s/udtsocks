@@ -140,7 +140,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 			for (auto i=sysreadfds->begin(); i!= sysreadfds->end(); i++)
 			{
 				int ssock = *i;
-				int usock = m_socketmap[ssock];
+				int usock = m_socketmap.at(ssock);
 				memset(buf, 0, bufsize);
 				int recved = recv(ssock, buf, bufsize, 0);
 				if (recved <= 0)
@@ -148,7 +148,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 					udtforwardclient_closesocket(usock, ssock);
 					continue;
 				}
-				send_udtsock(m_socketmap[ssock], buf, recved);
+				send_udtsock(usock, buf, recved);
 			}
 			//
 		}
@@ -342,11 +342,12 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 		struct addrinfo *ptarget_addrinfo = NULL;
 		if (getaddrinfo(domain, "http", &ouraddrinfo, &ptarget_addrinfo) != 0)
 		{
+			std::cout<<"can't resolve domain:"<<domain<<std::endl;
 			delete []domain;
 			freeaddrinfo(ptarget_addrinfo);
 			return UDTSOCKET_FAIL;
 		}
-		delete []domain;
+
 		//reset port.
 		port_offset = sizeof(socks5_request_t) + domainlen + 1 ;
 		struct sockaddr_in *paddr = (struct sockaddr_in*)ptarget_addrinfo->ai_addr;
@@ -356,10 +357,13 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 		if (connect(target_socket, ptarget_addrinfo->ai_addr, ptarget_addrinfo->ai_addrlen) ==0 )
 		{
 			//success
+			delete []domain;
 			freeaddrinfo(ptarget_addrinfo);
 			return target_socket;
 		}
 		//fail.
+		std::cout<<"connect server fail :"<<domain<<std::endl;
+		delete []domain;
 		perror(strerror(errno));
 		freeaddrinfo(ptarget_addrinfo);
 		return UDTSOCKET_FAIL;

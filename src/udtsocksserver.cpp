@@ -10,7 +10,7 @@ int udtsocksserver::m_socket;
 int udtsocksserver::m_eid;
 pthread_mutex_t udtsocksserver::m_mutex;
 pthread_t udtsocksserver::m_epoll_thread = 0;
-std::map<int,int> udtsocksserver::m_socket_pair;//<socket, UDTSOCKET>
+std::map<int,int> udtsocksserver::m_socketmap;//<socket, UDTSOCKET>
 
 udtsocksserver::udtsocksserver() {
 
@@ -107,7 +107,7 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 				continue;
 			}
 			int ssock = *i;
-			int usock = m_socket_pair[ssock];
+			int usock = m_socketmap.at(ssock);
 			int iread = recv(ssock, &vec_buf[0], vec_buf.capacity(), 0);
 			if (iread<=0)
 			{
@@ -155,7 +155,7 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 {
 
-	if (m_socket_pair[ssock] != usock)
+	if (m_socketmap.at(ssock) != usock)
 	{
 		perror("Warning:socket pair does not pair.");
 		//pause();
@@ -169,11 +169,11 @@ void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 		UDT::epoll_remove_ssock(m_eid, ssock);
 		close(ssock);
 	}
-	m_socket_pair.erase(ssock);
+	m_socketmap.erase(ssock);
 }
 int udtsocksserver::udtsocksserver_sourcesock_from_udt(UDTSOCKET usock)
 {
-	for (auto i=m_socket_pair.begin(); i != m_socket_pair.end(); i++)
+	for (auto i=m_socketmap.begin(); i != m_socketmap.end(); i++)
 	{
 		if (i->second == usock)
 		{
@@ -204,7 +204,7 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 			return NULL;
 		}
 		new autocritical(m_mutex);
-		m_socket_pair.insert(std::pair<int,int>(clisocket, newclient));
+		m_socketmap.insert(std::pair<int,int>(clisocket, newclient));
 		//bool f = false;
 		int event_read = UDT_EPOLL_IN;
 		UDT::epoll_add_ssock(m_eid, clisocket, &event_read);
