@@ -140,7 +140,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 			for (auto i=sysreadfds->begin(); i!= sysreadfds->end(); i++)
 			{
 				int ssock = *i;
-				int usock = m_socketmap.at(ssock);
+				int usock = m_socketmap.find(ssock);
 				memset(buf, 0, bufsize);
 				int recved = recv(ssock, buf, bufsize, 0);
 				if (recved <= 0)
