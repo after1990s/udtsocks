@@ -149,7 +149,7 @@
 //{
 //	udtconfig::setlistenport("8008");
 //	udtforwardclient::udtforwardclient_init();
-//	for (int i=0; i<1; i++)
+//	for (int i=0; i<5; i++)
 //	{
 //		pthread_t tid = 0;
 //		pthread_create(&tid, NULL, domain_test, NULL);

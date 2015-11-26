@@ -37,10 +37,7 @@ void   udtforwardclient::udtforwardclient_init()
 	//pthread_create(&tid, NULL, udtforwardclient_accept, &m_udtsock);
 
 	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
-	pthread_detach(tid);
-	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
-	pthread_detach(tid);
-	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
+
 	pthread_detach(tid);
 }
 void udtforwardclient::udtforwardclient_initudtserver()
@@ -423,6 +420,10 @@ bool udtforwardclient::udtforwardclient_checkclientaddr(sockaddr addr)
 void udtforwardclient::udtforwardclient_closesocket(UDTSOCKET usock, int ssock)
 {
 	new autocritical(m_mutex);
+	if (g_debug)
+	{
+		std::cout<<"remove socket pair<ssock,usock>:"<< ssock << ", "<< usock << std::endl;
+	}
 	UDT::epoll_remove_usock(m_eid, usock);
 	UDT::close(usock);
 

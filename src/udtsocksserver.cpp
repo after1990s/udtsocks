@@ -154,12 +154,25 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 }
 void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 {
-
+	new autocritical(m_mutex);
 	UDTSOCKET u = access_map(m_socketmap, ssock);
+	if (g_debug)
+	{
+		std::cout<<"remove socket pair<ssock,usock>:"<< ssock << ", "<< usock << std::endl;
+	}
+
 	if (u != usock)
 	{
-		perror("Warning:socket pair does not pair.");
-		//pause();
+		//perror("Warning:socket pair does not pair.");
+		if (g_debug)
+		{
+		//	asm("int $3");
+		}
+		return ;
+	}
+	else
+	{
+		m_socketmap.erase(ssock);
 	}
 	if (usock!=0){
 		UDT::epoll_remove_usock(m_eid, usock);
@@ -170,7 +183,7 @@ void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 		UDT::epoll_remove_ssock(m_eid, ssock);
 		close(ssock);
 	}
-	m_socketmap.erase(ssock);
+
 }
 int udtsocksserver::udtsocksserver_sourcesock_from_udt(UDTSOCKET usock)
 {
@@ -228,6 +241,14 @@ UDTSOCKET udtsocksserver::connectserver(void)
 	if (g_debug){
 		std::cout <<"try connect server";
 		output_content(NULL, 0);
+	}
+	if (sock==UDT::INVALID_SOCK)
+	{
+		if (g_debug){
+			std::cout <<"udt socket allocat failed";
+			output_content(NULL, 0);
+		}
+		return UDT::ERROR;
 	}
 	if (UDT::connect(sock, (sockaddr*)&dst, sizeof(dst)) != 0)
 	{
