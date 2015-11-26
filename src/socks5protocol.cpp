@@ -95,6 +95,8 @@ void output_content(std::vector<unsigned char> &t, int len)
 }
 void output_content(const char *t,int len)
 {
+	if (!g_debug)
+		return;
 	char buf[16] = {0};
 	len = len > 16 ? 16 : len;
 	for (auto i = 0; i<len; i++)
