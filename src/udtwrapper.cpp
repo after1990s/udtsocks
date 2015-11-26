@@ -35,11 +35,11 @@ int recv_udtsock(UDTSOCKET sock, char * buf, int len, int flag)
 	while (recved != len)
 	{
 		int recvcount = UDT::recv(sock, buf, len, flag);
-		if (recvcount == UDT::ERROR)
+		if (recvcount <= 0)
 		{
 			if (UDT::getlasterror().getErrorCode() == CUDTException::EASYNCRCV)
 			{
-				recved += recvcount;
+
 				return recved;
 			}
 			else
@@ -58,11 +58,11 @@ int recv_syssock(int sock, char * buf, int len, int flag)
 		while (recved != len)
 		{
 			int recvcount = recv(sock, buf, len, flag);
-			if (recvcount < 0)
+			if (recvcount <= 0)
 			{
 				if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
 				{
-					recved += recvcount;
+
 					return recved;
 				}
 				else
