@@ -107,7 +107,7 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 				continue;
 			}
 			int ssock = *i;
-			int usock = m_socketmap.find(ssock);
+			int usock = access_map(m_socketmap, ssock);
 			int iread = recv(ssock, &vec_buf[0], vec_buf.capacity(), 0);
 			if (iread<=0)
 			{
@@ -155,7 +155,8 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 {
 
-	if (m_socketmap.find(ssock) != usock)
+	UDTSOCKET u = access_map(m_socketmap, ssock);
+	if (u != usock)
 	{
 		perror("Warning:socket pair does not pair.");
 		//pause();

@@ -62,3 +62,21 @@ int send_syssock(int sock, const char * buf, int len)
 	}
 	return len;
 }
+
+int access_map(std::map<int,int> map, int key)
+{
+	try
+	{
+		auto itr = map.find(key);
+		if (itr != map.end())
+		{
+			return itr->second;
+		}
+	}
+	catch (std::exception i)
+	{
+		return UDT::ERROR;
+	}
+	return UDT::ERROR;
+}
+
