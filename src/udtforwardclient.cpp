@@ -275,8 +275,8 @@ int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 			//回报成功消息
 			udtforwardclient_reply_success(sock);
 			//连接成功，增加一个记录
-			m_socketmap[dstsock] =  sock;
 			new autocritical(m_mutex);
+			m_socketmap[dstsock] =  sock;
 			int event_read_write = UDT_EPOLL_IN | UDT_EPOLL_ERR ;
 			setudtnonblockingsend(sock);
 			setsysnonblockingsend(dstsock);
@@ -418,6 +418,7 @@ bool udtforwardclient::udtforwardclient_checkclientaddr(sockaddr addr)
 
 void udtforwardclient::udtforwardclient_closesocket(UDTSOCKET usock, int ssock)
 {
+	new autocritical(m_mutex);
 	UDT::epoll_remove_usock(m_eid, usock);
 	UDT::close(usock);
 

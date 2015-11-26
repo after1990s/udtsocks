@@ -195,7 +195,6 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 		//set socket to async.
 		setsysnonblockingsend(clisocket);
 		// add socket to epoll eid. add socket to socket map,should use mutex proctect.
-		new autocritical(m_mutex);
 		UDTSOCKET newclient = connectserver();
 		if (newclient == UDTSOCKET_FAIL)
 		{
@@ -204,6 +203,7 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 			//todo: rely fail msg to user.
 			return NULL;
 		}
+		new autocritical(m_mutex);
 		m_socket_pair.insert(std::pair<int,int>(clisocket, newclient));
 		//bool f = false;
 		int event_read = UDT_EPOLL_IN;
