@@ -98,6 +98,10 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 
 	while (true)
 		{
+			udtreadfds->clear();
+			udtwritefds->clear();
+			sysreadfds->clear();
+			syswritefds->clear();
 			int res = UDT::epoll_wait(m_eid, udtreadfds, udtwritefds, msTimeOut, sysreadfds, syswritefds);
 			if (res<0)
 			{

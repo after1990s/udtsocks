@@ -229,6 +229,7 @@ UDTSOCKET udtsocksserver::connectserver(void)
 	{
 		if (g_debug){
 			std::cout <<"connect server failed";
+			perror(UDT::getlasterror_desc());
 			output_content(NULL, 0);
 		}
 		perror( UDT::getlasterror_desc());
