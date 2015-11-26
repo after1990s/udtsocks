@@ -84,31 +84,8 @@
 //		freeaddrinfo(peer);
 //		return NULL;
 //}
-//int main(void)
+//void* domain_test(void*u)//domain test
 //{
-//	udtconfig::setlistenport("8008");
-//	udtforwardclient::udtforwardclient_init();
-//	for (int i=0; i<10; i++)
-//	{
-//		pthread_t tid = 0;
-//		pthread_create(&tid, NULL, test_ipv4, NULL);
-//		pthread_detach(tid);
-//
-//	}
-//	sleep(1);
-//	for (int i=0; i<20; i++)
-//	{
-//		pthread_t tid = 0;
-//		pthread_create(&tid, NULL, test_ipv4, NULL);
-//		pthread_detach(tid);
-//
-//	}
-//	pause();
-//}
-//int main0(void)//domain test
-//{
-//	udtconfig::setlistenport("8008");
-//	udtforwardclient::udtforwardclient_init();
 //
 //	UDTSOCKET sock = UDT::socket(AF_INET, SOCK_STREAM, IPPROTO_UDP);
 //	struct addrinfo hint={0}, *peer;
@@ -143,19 +120,58 @@
 //	int domain_len = sizeof(domain) - 1;//with out \0.
 //	buf[4] = domain_len;//len(www.baidu.com)
 //	memcpy(&buf[5], domain, domain_len);
-//	buf[5 + domain_len] = 0x50;
-//	buf[5 + domain_len + 1] = 0x00;//port
+//	buf[5 + domain_len] = 0x00;
+//	buf[5 + domain_len + 1] = 0x50;//port
 //
 //	UDT::send(sock, buf, 5 + domain_len + sizeof(short), 0);
 //	memset (buf, '1', 32);
 //	UDT::recv(sock, buf, 32, 0);
 //
-//	char http_get[]="Get index.html\r\nHost:www.baidu.com\r\n\r\n";
+//	char http_get[]=
+//			"GET index.html HTTP/1.1\r\n"
+//			"Host: www.baidu.com\r\n"
+//			"Accept: text/html\r\n"
+//			"User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)\r\n"
+//			"\r\n";
 //	int i = UDT::send(sock, http_get, sizeof(http_get), 0);
 //	memset (buf, '1', 32);
 //	i = UDT::recv(sock, buf, 32, 0);
-//	UDT::close(sock);
+//	if (i<0)
+//	{
+//		asm("int $3");
+//	}
 //	freeaddrinfo(peer);
-//	sleep(100);
+//	return NULL;
 //}
 //
+//
+//int main(void)
+//{
+//	udtconfig::setlistenport("8008");
+//	udtforwardclient::udtforwardclient_init();
+//	for (int i=0; i<1; i++)
+//	{
+//		pthread_t tid = 0;
+//		pthread_create(&tid, NULL, domain_test, NULL);
+//		pthread_detach(tid);
+//
+//	}
+//	pause();
+//
+////	for (int i=0; i<10; i++)
+////	{
+////		pthread_t tid = 0;
+////		pthread_create(&tid, NULL, test_ipv4, NULL);
+////		pthread_detach(tid);
+////
+////	}
+////	sleep(1);
+////	for (int i=0; i<20; i++)
+////	{
+////		pthread_t tid = 0;
+////		pthread_create(&tid, NULL, test_ipv4, NULL);
+////		pthread_detach(tid);
+////
+////	}
+////	pause();
+//}

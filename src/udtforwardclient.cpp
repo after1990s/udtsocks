@@ -64,14 +64,15 @@ void * udtforwardclient::udtforwardclient_accept(void *u)
 	pthread_t tid;
 
 	UDTSOCKET clisock  = UDT::accept(sock, &addr, &addrlen);
-	//delete in udtforwardclient_socks5
-	UDTSOCKET *pclisock = new UDTSOCKET;
-	*pclisock = clisock;
+
 	if (clisock== UDT::INVALID_SOCK)
 	{
 		UDT::close(clisock);
 		return NULL;
 	}
+	//delete in udtforwardclient_socks5
+	UDTSOCKET *pclisock = new UDTSOCKET;
+	*pclisock = clisock;
 	if (!udtforwardclient_checkclientaddr(addr))
 	{
 		UDT::close(clisock);
@@ -341,7 +342,8 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 		//reset port.
 		port_offset = sizeof(socks5_request_t) + domainlen + 1 ;
 		struct sockaddr_in *paddr = (struct sockaddr_in*)ptarget_addrinfo->ai_addr;
-		paddr->sin_port=ntohs(vec[port_offset]);//net order.
+		memcpy(&paddr->sin_port, &vec[port_offset], sizeof(paddr->sin_port));
+		//paddr->sin_port=ntohl(vec[port_offset]);//net order.
 		//connect
 		if (connect(target_socket, ptarget_addrinfo->ai_addr, ptarget_addrinfo->ai_addrlen) ==0 )
 		{
