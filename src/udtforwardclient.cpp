@@ -275,7 +275,7 @@ int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 			new autocritical(m_mutex);
 			m_socketmap[dstsock] =  sock;
 			int event_read_write = UDT_EPOLL_IN | UDT_EPOLL_ERR ;
-			setudtnonblockingsend(sock);
+			setudtnonblocking(sock);
 			setsysnonblockingsend(dstsock);
 			UDT::epoll_add_ssock(m_eid, dstsock, &event_read_write);
 			UDT::epoll_add_usock(m_eid, sock, &event_read_write);
@@ -427,7 +427,7 @@ void udtforwardclient::udtforwardclient_closesocket(UDTSOCKET usock, int ssock)
 	UDT::epoll_remove_usock(m_eid, usock);
 	UDT::close(usock);
 
-	UDT::epoll_remove_ssock(m_eid, ssock);http://us.sinaimg.cn/004l4DCBjx06X6oAMpH905040102hh8H0k02.mp4
+	UDT::epoll_remove_ssock(m_eid, ssock);
 	close(ssock);
 	m_socketmap.erase(ssock);
 }

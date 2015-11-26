@@ -7,10 +7,11 @@
 
 #include "udtwrapper.h"
 extern const bool g_debug;
-void setudtnonblockingsend(UDTSOCKET sock)
+void setudtnonblocking(UDTSOCKET sock)
 {
 	bool bfalse = false;
 	UDT::setsockopt(sock, 0, UDT_SNDSYN, &bfalse, sizeof(bool));
+	UDT::setsockopt(sock, 0, UDT_RCVSYN, &bfalse, sizeof(bool));
 }
 void setsysnonblockingsend(int sock)
 {
@@ -119,7 +120,7 @@ int access_map(std::map<int,int> map, int key)
 			return itr->second;
 		}
 	}
-	catch (std::exception i)
+	catch (std::exception &i)
 	{
 		if (g_debug)
 		{

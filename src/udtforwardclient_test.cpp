@@ -141,6 +141,15 @@
 //		asm("int $3");
 //	}
 //	freeaddrinfo(peer);
+//	static int count = 0;
+//	if (count != 11)
+//	{
+//		count++;
+//	}
+//	else
+//	{
+//		asm("int $3");
+//	}
 //	return NULL;
 //}
 //
@@ -149,7 +158,7 @@
 //{
 //	udtconfig::setlistenport("8008");
 //	udtforwardclient::udtforwardclient_init();
-//	for (int i=0; i<5; i++)
+//	for (int i=0; i<12; i++)
 //	{
 //		pthread_t tid = 0;
 //		pthread_create(&tid, NULL, domain_test, NULL);

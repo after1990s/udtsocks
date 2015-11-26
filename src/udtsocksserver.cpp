@@ -265,7 +265,7 @@ UDTSOCKET udtsocksserver::connectserver(void)
 		std::cout <<"end connect server";
 		output_content(NULL, 0);
 	}
-	setudtnonblockingsend(sock);
+	setudtnonblocking(sock);
 	return sock;
 }
 ////read data ,return 1.
