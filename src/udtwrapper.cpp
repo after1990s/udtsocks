@@ -75,6 +75,10 @@ int access_map(std::map<int,int> map, int key)
 	}
 	catch (std::exception i)
 	{
+		if (g_debug)
+		{
+			asm("int $3");
+		}
 		return UDT::ERROR;
 	}
 	return UDT::ERROR;
