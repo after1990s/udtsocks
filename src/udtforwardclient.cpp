@@ -121,7 +121,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 					memset(buf, 0, bufsize);
 					//transport data from udt to target socket.
 					UDTSOCKET usock = *i;
-					int recved = UDT::recv(usock, buf, bufsize, 0);
+					int recved = recv_udtsock(usock, buf, bufsize, 0);
 
 					int ssock = udtforwardclient_targetsocket_from_udtsocket(usock);
 					if (ssock == UDTSOCKET_FAIL || ssock==0 || recved == UDTSOCKET_FAIL)
@@ -139,7 +139,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 				int ssock = *i;
 				int usock = access_map(m_socketmap, ssock);
 				memset(buf, 0, bufsize);
-				int recved = recv(ssock, buf, bufsize, 0);
+				int recved = recv_syssock(ssock, buf, bufsize, 0);
 				if (recved <= 0)
 				{
 					udtforwardclient_closesocket(usock, ssock);
@@ -427,7 +427,7 @@ void udtforwardclient::udtforwardclient_closesocket(UDTSOCKET usock, int ssock)
 	UDT::epoll_remove_usock(m_eid, usock);
 	UDT::close(usock);
 
-	UDT::epoll_remove_ssock(m_eid, ssock);
+	UDT::epoll_remove_ssock(m_eid, ssock);http://us.sinaimg.cn/004l4DCBjx06X6oAMpH905040102hh8H0k02.mp4
 	close(ssock);
 	m_socketmap.erase(ssock);
 }

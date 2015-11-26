@@ -55,10 +55,10 @@ void udtsocksserver::udtsocksserver_init()
 	//create thread to accept new connect.
 	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
 	pthread_detach(m_epoll_thread);
-	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
-	pthread_detach(m_epoll_thread);
-	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
-	pthread_detach(m_epoll_thread);
+//	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
+//	pthread_detach(m_epoll_thread);
+//	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
+//	pthread_detach(m_epoll_thread);
 	return ;
 }
 
@@ -108,7 +108,7 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 			}
 			int ssock = *i;
 			int usock = access_map(m_socketmap, ssock);
-			int iread = recv(ssock, &vec_buf[0], vec_buf.capacity(), 0);
+			int iread = recv_syssock(ssock, (char*)&vec_buf[0], (int)vec_buf.capacity(), 0);
 			if (iread<=0)
 			{
 				//socket closed.
@@ -132,7 +132,7 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 			}
 			int usock = *i;
 			vec_buf.resize(1024);
-			int recved = UDT::recv(usock, (char*)&vec_buf[0], vec_buf.capacity(), 0);
+			int recved = recv_udtsock(usock, (char*)&vec_buf[0], vec_buf.capacity(), 0);
 			if (recved <= 0)
 			{//socket close
 				perror(UDT::getlasterror_desc());

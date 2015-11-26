@@ -28,6 +28,52 @@ void setsysnonblockingsend(int sock)
         exit(1);
     }
 }
+int recv_udtsock(UDTSOCKET sock, char * buf, int len, int flag)
+{
+	int recved = 0;
+	while (recved != len)
+	{
+		int recvcount = UDT::recv(sock, buf, len, flag);
+		if (recvcount == UDT::ERROR)
+		{
+			if (UDT::getlasterror().getErrorCode() == CUDTException::EASYNCRCV)
+			{
+				recved += recvcount;
+				return recved;
+			}
+			else
+			{
+				return UDT::ERROR;
+			}
+		}
+		recved += recvcount;
+	}
+	return recved;
+}
+
+int recv_syssock(int sock, char * buf, int len, int flag)
+{
+	int recved = 0;
+		while (recved != len)
+		{
+			int recvcount = recv(sock, buf, len, flag);
+			if (recvcount < 0)
+			{
+				if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+				{
+					recved += recvcount;
+					return recved;
+				}
+				else
+				{
+					return UDT::ERROR;
+				}
+			}
+			recved += recvcount;
+		}
+		return recved;
+}
+
 int send_udtsock(UDTSOCKET sock, const char * buf, int len)
 {
 	int reversed = len;
@@ -79,7 +125,10 @@ int access_map(std::map<int,int> map, int key)
 		{
 			asm("int $3");
 		}
-		return UDT::ERROR;
+	}
+	if (g_debug)
+	{
+		std::cout << "warming: can't find usock in socket pair, ssock: " << key << std::endl;
 	}
 	return UDT::ERROR;
 }
