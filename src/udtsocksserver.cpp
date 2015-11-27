@@ -55,10 +55,10 @@ void udtsocksserver::udtsocksserver_init()
 	//create thread to accept new connect.
 	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
 	pthread_detach(m_epoll_thread);
-//	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
-//	pthread_detach(m_epoll_thread);
-//	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
-//	pthread_detach(m_epoll_thread);
+	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
+	pthread_detach(m_epoll_thread);
+	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
+	pthread_detach(m_epoll_thread);
 	return ;
 }
 

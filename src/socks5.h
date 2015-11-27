@@ -39,6 +39,6 @@ typedef struct _socks5_request_t
 typedef socks5_request_t socks5_response_t;
 
 //#pragma pack()
-const bool g_debug = false;
+const bool g_debug = true;
 
 #endif

@@ -125,6 +125,7 @@
 		<configuration configurationName="Default">
 			<resource resourceType="PROJECT" workspacePath="/udtsocks"/>
 		</configuration>
+		<configuration configurationName="Release"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/udtsocks"/>
 		</configuration>
