@@ -158,13 +158,14 @@
 //{
 //	udtconfig::setlistenport("8008");
 //	udtforwardclient::udtforwardclient_init();
-//	for (int i=0; i<12; i++)
-//	{
-//		pthread_t tid = 0;
-//		pthread_create(&tid, NULL, domain_test, NULL);
-//		pthread_detach(tid);
-//
-//	}
+////	for (int i=0; i<12; i++)
+////	{
+////		pthread_t tid = 0;
+////		pthread_create(&tid, NULL, domain_test, NULL);
+////		pthread_detach(tid);
+////
+////	}
+//	domain_test(NULL);
 //	pause();
 //
 ////	for (int i=0; i<10; i++)

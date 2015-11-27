@@ -64,6 +64,7 @@ private:
 	static std::map<int, UDTSOCKET> m_socketmap; // <targetsocket, udtsocket>
 	static int m_eid;
 
+
 };
 
 #endif /* UDTFORWARDCLIENT_H_ */

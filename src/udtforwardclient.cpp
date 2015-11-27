@@ -12,21 +12,16 @@ UDTSOCKET udtforwardclient::m_udtsock = 0;
 int udtforwardclient::m_eid = 0;
 std::map<int, UDTSOCKET> udtforwardclient::m_socketmap;
 extern const bool g_debug;
-udtforwardclient::udtforwardclient() {
+udtforwardclient::udtforwardclient() {}
 
-
-}
-
-udtforwardclient::~udtforwardclient() {
-
-
-}
+udtforwardclient::~udtforwardclient() {}
 
 void   udtforwardclient::udtforwardclient_destory()
 {
 	pthread_mutex_destroy(&m_mutex);
 	UDT::cleanup();
 }
+
 void   udtforwardclient::udtforwardclient_init()
 {
 	UDT::startup();
@@ -40,6 +35,7 @@ void   udtforwardclient::udtforwardclient_init()
 
 	pthread_detach(tid);
 }
+
 void udtforwardclient::udtforwardclient_initudtserver()
 {
 	//setnonblocking(m_udtsock);
@@ -56,6 +52,7 @@ void udtforwardclient::udtforwardclient_initudtserver()
 	UDT::listen(m_udtsock, 10);
 
 }
+
 void * udtforwardclient::udtforwardclient_accept(void *u)
 {
 
@@ -83,6 +80,7 @@ void * udtforwardclient::udtforwardclient_accept(void *u)
 	pthread_detach(tid);
 	return NULL;
 }
+
 void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 {
 	//init udt accept socket
@@ -94,7 +92,9 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 	std::set<SYSSOCKET>* syswritefds =new  std::set<SYSSOCKET>();
 	int64_t msTimeOut = -1;
 	int bufsize = 1024 * 1024;
-	char* buf = new char[bufsize];
+	//char* buf = new char[bufsize];
+	std::vector<unsigned char> vec;
+	vec.resize(bufsize);
 	//int recv_this_count = 0;
 
 	while (true)
@@ -118,10 +118,10 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 				else
 				{
 					//data comes
-					memset(buf, 0, bufsize);
+					vec.clear();
 					//transport data from udt to target socket.
 					UDTSOCKET usock = *i;
-					int recved = recv_udtsock(usock, buf, bufsize, 0);
+					int recved = recv_udtsock(usock, (char*)&vec[0], vec.capacity(), 0);
 
 					int ssock = udtforwardclient_targetsocket_from_udtsocket(usock);
 					if (ssock == UDTSOCKET_FAIL || ssock==0 || recved == UDTSOCKET_FAIL)
@@ -130,7 +130,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 						udtforwardclient_closesocket(usock, ssock);
 						continue;
 					}
-					send_syssock(ssock, buf, recved);
+					send_syssock(ssock, (char*)&vec[0], recved);
 				}
 			}
 
@@ -138,21 +138,19 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 			{
 				int ssock = *i;
 				int usock = access_map(m_socketmap, ssock);
-				memset(buf, 0, bufsize);
-				int recved = recv_syssock(ssock, buf, bufsize, 0);
+				vec.clear();
+				int recved = recv_syssock(ssock, (char*)&vec[0], bufsize, 0);
 				if (recved <= 0)
 				{
 					udtforwardclient_closesocket(usock, ssock);
 					continue;
 				}
-				send_udtsock(usock, buf, recved);
+				send_udtsock(usock, (char*)&vec[0], recved);
 			}
 			//
 		}
 	return NULL;
 }
-
-
 
 int udtforwardclient::udtforwardclient_targetsocket_from_udtsocket(UDTSOCKET sock)
 {
@@ -163,6 +161,7 @@ int udtforwardclient::udtforwardclient_targetsocket_from_udtsocket(UDTSOCKET soc
 	}
 	return UDTSOCKET_FAIL;
 }
+
 void * udtforwardclient::udtforwardclient_socks5(void *u)
 {//socks5 协议协商
 	UDTSOCKET *pu = (UDTSOCKET*)u;
@@ -208,9 +207,10 @@ int   udtforwardclient::udtforwardclient_sock5_hello(UDTSOCKET sock)
 		return returnvalue;
 	}
 	int nmethods = req.nmethods;
-	char *methods = new char[nmethods];
+	//char *methods = new char[nmethods];
+	std::unique_ptr<char[]> methods(new char[nmethods]);
 	bool accept = false;
-	UDT::recv(sock, methods, nmethods,0);
+	UDT::recv(sock, methods.get(), nmethods,0);
 	for (int i=0; i < nmethods; i++)
 	{
 		if (methods[i] == 0)
@@ -244,14 +244,16 @@ int   udtforwardclient::udtforwardclient_sock5_hello(UDTSOCKET sock)
 		}
 		UDT::send(sock, (char*)&vec[0], vec.size(), 0);
 	}
-	delete[] methods;
+	//delete[] methods;
 	return returnvalue;
 
 }
+
 int   udtforwardclient::udtforwardclient_sock5_auth(UDTSOCKET sock)
 {
 	return UDTSOCKET_FAIL;
 }
+
 int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 {
 	//int returnvalue = -1;
@@ -329,40 +331,44 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 		//copyt domain name from vec.
 		int domainbegin = sizeof(socks5_request_t);
 		int domainlen = vec[domainbegin];
-		char *domain = new char[domainlen+1];
-		memset (domain, 0, domainlen+1);
-		memcpy (domain, &vec[domainbegin+1], domainlen);
+		//char *domain = new char[domainlen+1];
+		std::vector<char> domain;
+		domain.resize(domainlen+1);
+		domain.clear();
+		memcpy (&domain[0], &vec[domainbegin+1], domainlen);
 		//dns reslove
 		addrinfo ouraddrinfo = {0};
 		ouraddrinfo.ai_family = AF_INET;
 		ouraddrinfo.ai_socktype = SOCK_DGRAM;
-		struct addrinfo *ptarget_addrinfo = NULL;
-		if (getaddrinfo(domain, "http", &ouraddrinfo, &ptarget_addrinfo) != 0)
+
+		//ptarget_addrinfo content filled by getaddrinfo.
+		//DON'T insert any statement between this and next statement.
+
+		struct addrinfo* ptarget_addrinfo = nullptr;
+		if (getaddrinfo((const char*)&domain[0], "http", &ouraddrinfo, &ptarget_addrinfo) != 0)
 		{
-			std::cout<<"can't resolve domain:"<<domain<<std::endl;
-			delete []domain;
 			freeaddrinfo(ptarget_addrinfo);
+			std::cout<<"can't resolve domain:"<<(char*)&domain[0]<<std::endl;
 			return UDTSOCKET_FAIL;
 		}
-
+		std::unique_ptr<struct addrinfo *, decltype(&unique_freeaddrinfo)> utarget_addrinfo(nullptr, unique_freeaddrinfo);
 		//reset port.
 		port_offset = sizeof(socks5_request_t) + domainlen + 1 ;
-		struct sockaddr_in *paddr = (struct sockaddr_in*)ptarget_addrinfo->ai_addr;
+
+		struct sockaddr_in *paddr = (struct sockaddr_in*)((*utarget_addrinfo)->ai_addr);
 		memcpy(&paddr->sin_port, &vec[port_offset], sizeof(paddr->sin_port));
 		//paddr->sin_port=ntohl(vec[port_offset]);//net order.
 		//connect
-		if (connect(target_socket, ptarget_addrinfo->ai_addr, ptarget_addrinfo->ai_addrlen) ==0 )
+		if (connect(target_socket, (struct sockaddr*)paddr, sizeof(struct sockaddr)) == 0)
 		{
 			//success
-			delete []domain;
-			freeaddrinfo(ptarget_addrinfo);
+			//freeaddrinfo(ptarget_addrinfo);
 			return target_socket;
 		}
 		//fail.
-		std::cout<<"connect server fail :"<<domain<<std::endl;
-		delete []domain;
+		std::cout<<"connect server fail :"<< (char*)&domain[0] <<std::endl;
 		perror(strerror(errno));
-		freeaddrinfo(ptarget_addrinfo);
+		//freeaddrinfo(ptarget_addrinfo);
 		return UDTSOCKET_FAIL;
 	}
 	else if (req->atype == SOCKS5_ATTYPE_IPV6)
@@ -375,6 +381,7 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 	}
 	return UDTSOCKET_FAIL;
 }
+
 void udtforwardclient::udtforwardclient_reply_success(UDTSOCKET sock)
 {
 	std::vector<unsigned char> vec;
@@ -412,6 +419,7 @@ void udtforwardclient::udtforwardclient_reply_success(UDTSOCKET sock)
 	UDT::send(sock, (char*)&vec[0], vec_len, 0);
 	freeaddrinfo(ptarget_addrinfo);
 }
+
 bool udtforwardclient::udtforwardclient_checkclientaddr(sockaddr addr)
 {//check is address in the black list.
 	return true;

@@ -133,4 +133,7 @@ int access_map(std::map<int,int> map, int key)
 	}
 	return UDT::ERROR;
 }
-
+void unique_freeaddrinfo(struct addrinfo * * info)
+{
+	freeaddrinfo(*info);
+}
