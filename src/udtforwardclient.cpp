@@ -122,7 +122,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 					//transport data from udt to target socket.
 					UDTSOCKET usock = *i;
 					int recved = recv_udtsock(usock, (char*)&vec[0], vec.capacity(), 0);
-					int ssock = access_map(m_socketmap, usock);
+					int ssock = udtforwardclient_targetsocket_from_udtsocket(usock);
 					if (ssock == UDTSOCKET_FAIL || ssock==0 || recved == UDTSOCKET_FAIL)
 					{//remote close socket
 						perror(strerror(errno));
