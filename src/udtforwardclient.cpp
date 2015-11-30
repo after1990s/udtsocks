@@ -355,7 +355,9 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 			std::cout<<"can't resolve domain:"<<(char*)&domain[0]<<std::endl;
 			return UDTSOCKET_FAIL;
 		}
-		std::unique_ptr<struct addrinfo *, decltype(&unique_freeaddrinfo)> utarget_addrinfo(nullptr, unique_freeaddrinfo);
+		std::unique_ptr<struct addrinfo *, decltype(&unique_freeaddrinfo)> utarget_addrinfo(
+				ptarget_addrinfo,
+				unique_freeaddrinfo);
 		//reset port.
 		port_offset = sizeof(socks5_request_t) + domainlen + 1 ;
 
