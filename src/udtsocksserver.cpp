@@ -160,14 +160,20 @@ void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 {
 	new autocritical(m_mutex);
 	UDTSOCKET u = access_map(m_socketmap, ssock);
-	if (g_debug)
+	if (usock!=0 && usock!=-1){
+			UDT::epoll_remove_usock(m_eid, usock);
+			UDT::close(usock);
+		}
+	if (ssock!=0 && ssock!=-1)
 	{
-		std::cout<<"remove socket pair<ssock,usock>:"<< ssock << ", "<< usock << std::endl;
+		UDT::epoll_remove_ssock(m_eid, ssock);
+		close(ssock);
 	}
+
 
 	if (u != usock)
 	{
-		//perror("Warning:socket pair does not pair.");
+		perror("Warning:socket pair does not pair.");
 		if (g_debug)
 		{
 		//	asm("int $3");
@@ -177,16 +183,12 @@ void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 	else
 	{
 		m_socketmap.erase(ssock);
+		if (g_debug)
+		{
+			std::cout<<"remove socket pair<ssock,usock>:"<< ssock << ", "<< usock << std::endl;
+		}
 	}
-	if (usock!=0){
-		UDT::epoll_remove_usock(m_eid, usock);
-		UDT::close(usock);
-	}
-	if (ssock!=0)
-	{
-		UDT::epoll_remove_ssock(m_eid, ssock);
-		close(ssock);
-	}
+
 
 }
 int udtsocksserver::udtsocksserver_sourcesock_from_udt(UDTSOCKET usock)

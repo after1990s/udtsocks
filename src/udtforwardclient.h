@@ -59,6 +59,7 @@ private:
 	//static void  udtforwardclient_send_udtsock(UDTSOCKET sock, const char * buf, int len);
 	static bool udtforwardclient_checkclientaddr(sockaddr addr);
 	static void udtforwardclient_reply_success(UDTSOCKET sock);
+	static void udtforwardclient_sock5_connect_fail(UDTSOCKET usock, std::vector<unsigned char> &vec);
 	static void setnonblocking(int sock);
 
 	static void udtforwardclient_initudtserver(void);

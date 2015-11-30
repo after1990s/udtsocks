@@ -44,12 +44,12 @@ int  socks5protocol::recv_socks5_request(UDTSOCKET sock, std::vector<unsigned ch
 		int domainlen = vec[recved-1];
 		if (g_debug)
 		{
-			std::cout << "recv domain req, stage 1, recv domain name." << std::endl;
+			std::cout << "recv domain req, stage 2, recv domain name." << std::endl;
 		}
 		recved += UDT::recv(sock, (char*)&vec[recved], domainlen, 0);
 		if (g_debug)
 		{
-			std::cout << "recv domain req, stage 1, recv port number." << std::endl;
+			std::cout << "recv domain req, stage 3, recv port number." << std::endl;
 		}
 		//+short for the port number.
 		recved += UDT::recv(sock, (char*)&vec[recved], sizeof(short), 0);

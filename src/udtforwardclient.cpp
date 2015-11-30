@@ -122,8 +122,7 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 					//transport data from udt to target socket.
 					UDTSOCKET usock = *i;
 					int recved = recv_udtsock(usock, (char*)&vec[0], vec.capacity(), 0);
-
-					int ssock = udtforwardclient_targetsocket_from_udtsocket(usock);
+					int ssock = access_map(m_socketmap, usock);
 					if (ssock == UDTSOCKET_FAIL || ssock==0 || recved == UDTSOCKET_FAIL)
 					{//remote close socket
 						perror(strerror(errno));
@@ -290,6 +289,7 @@ int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 		else
 		{
 		//连接失败，发送失败消息，关闭连接。
+			udtforwardclient_sock5_connect_fail(sock, vec);
 			UDT::close(sock);
 		}
 	}
@@ -303,7 +303,45 @@ int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 	}
 	return UDTSOCKET_FAIL;
 }
+void   udtforwardclient::udtforwardclient_sock5_connect_fail(UDTSOCKET usock, std::vector<unsigned char> &vec1)
+{
+	std::vector<unsigned char> vec_fail;
+	vec_fail.resize(1024);
 
+	vec_fail.resize(1024);
+	socks5_response_t resp = {0};
+	resp.ver = SOCKS5_VERSION;
+	resp.rsv = SOCKS5_RSV;
+	resp.cmd = SOCKS5_RELY_CONNECT_UNREACH;//success.
+	resp.atype = SOCKS5_IPV4;//ipv4
+
+	addrinfo ouraddrinfo = {0};
+	ouraddrinfo.ai_family = AF_INET;
+	ouraddrinfo.ai_socktype = SOCK_DGRAM;
+	struct addrinfo *ptarget_addrinfo = NULL;
+	if (getaddrinfo("localhost", "http", &ouraddrinfo, &ptarget_addrinfo) != 0)
+	{
+		freeaddrinfo(ptarget_addrinfo);
+		return ;
+	}
+	struct sockaddr_in* addr_in = (sockaddr_in*)ptarget_addrinfo->ai_addr;
+	int addr_offset = sizeof(socks5_response_t);
+	int addr_port_offset = addr_offset + sizeof(addr_in->sin_addr);
+	int vec_len = addr_port_offset +  sizeof(addr_in->sin_port);
+
+	memcpy(&vec_fail[0], &resp, addr_offset);
+	memcpy(&vec_fail[addr_offset], &addr_in->sin_addr, sizeof(addr_in->sin_addr));
+	memcpy(&vec_fail[addr_port_offset], &addr_in->sin_port, sizeof(addr_in->sin_port));
+	if (g_debug)
+	{
+		std::cout<< "forwardclient connect fail:";
+		output_content((char*)&vec_fail[0], vec_len);
+	}
+
+	UDT::send(usock, (char*)&vec_fail[0], vec_len, 0);
+	freeaddrinfo(ptarget_addrinfo);
+
+}
 int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned char> &vec)
 {
 	int target_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -393,10 +431,10 @@ void udtforwardclient::udtforwardclient_reply_success(UDTSOCKET sock)
 	std::vector<unsigned char> vec;
 	vec.resize(1024);
 	socks5_response_t resp = {0};
-	resp.ver = 0x05;
-	resp.rsv = 0x00;
-	resp.cmd = 0x00;//success.
-	resp.atype = 0x01;//ipv4
+	resp.ver = SOCKS5_VERSION;
+	resp.rsv = SOCKS5_RSV;
+	resp.cmd = SOCKS5_SUCCESS;//success.
+	resp.atype = SOCKS5_IPV4;//ipv4
 
 	addrinfo ouraddrinfo = {0};
 	ouraddrinfo.ai_family = AF_INET;
