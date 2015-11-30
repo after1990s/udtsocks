@@ -36,6 +36,6 @@ int send_udtsock(UDTSOCKET sock, const char * buf, int len);
 int recv_syssock(int sock, char * buf, int len, int flag);
 int recv_udtsock(UDTSOCKET sock, char * buf, int len, int flag);
 int access_map(std::map<int,int> map, int k);
-void unique_freeaddrinfo(struct addrinfo * * info);
+void unique_freeaddrinfo(struct addrinfo * & info);
 
 #endif /* UDTWRAPPER_H_ */

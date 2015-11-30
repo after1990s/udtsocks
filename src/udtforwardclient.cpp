@@ -355,13 +355,13 @@ int   udtforwardclient::udtforwardclient_sock5_tryconnect(std::vector<unsigned c
 			std::cout<<"can't resolve domain:"<<(char*)&domain[0]<<std::endl;
 			return UDTSOCKET_FAIL;
 		}
-		std::unique_ptr<struct addrinfo *, decltype(&unique_freeaddrinfo)> utarget_addrinfo(
-				ptarget_addrinfo,
-				unique_freeaddrinfo);
+
+		std::unique_ptr<struct addrinfo, addr_deleter> utarget_addrinfo(
+				ptarget_addrinfo);
 		//reset port.
 		port_offset = sizeof(socks5_request_t) + domainlen + 1 ;
 
-		struct sockaddr_in *paddr = (struct sockaddr_in*)((*utarget_addrinfo)->ai_addr);
+		struct sockaddr_in *paddr = (struct sockaddr_in*)((*utarget_addrinfo).ai_addr);
 		memcpy(&paddr->sin_port, &vec[port_offset], sizeof(paddr->sin_port));
 		//paddr->sin_port=ntohl(vec[port_offset]);//net order.
 		//connect

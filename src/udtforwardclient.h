@@ -31,6 +31,13 @@
 #include "socks5protocol.h"
 #include "udtconfig.h"
 //run outside firewall.
+struct addr_deleter{
+	void operator()(struct addrinfo *ptr)
+	{
+		if (ptr!=nullptr)
+			freeaddrinfo(ptr);
+	}
+};
 class udtforwardclient {
 public:
 	udtforwardclient();
