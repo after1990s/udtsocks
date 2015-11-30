@@ -1,9 +1,6 @@
-Debug/*.o
-Debug/*.d
-Debug/udtsocks
-Debug/src/*
 /Release/*.o
 /Release/*.d
 /Release/udtsocks
+/Release/src/*
+/Debug/*
 /Release/
-/Debug/
