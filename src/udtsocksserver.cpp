@@ -173,11 +173,7 @@ void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 
 	if (u != usock)
 	{
-		perror("Warning:socket pair does not pair.");
-		if (g_debug)
-		{
-		//	asm("int $3");
-		}
+		std::cout << "Warning:socket pair does not pair.pair<ssock,usock>:"<< ssock << ", "<< usock << std::endl;
 		return ;
 	}
 	else

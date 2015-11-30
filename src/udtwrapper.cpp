@@ -110,7 +110,7 @@ int send_syssock(int sock, const char * buf, int len)
 	return len;
 }
 
-int access_map(std::map<int,int> map, int key)
+int access_map(const std::map<int,int> &map, int key)
 {
 	try
 	{

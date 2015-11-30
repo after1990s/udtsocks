@@ -278,6 +278,12 @@ int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 			udtforwardclient_reply_success(sock);
 			//连接成功，增加一个记录
 			new autocritical(m_mutex);
+
+			if (g_debug)
+			{
+				std::cout << "insert pair<ssock, usock>" << dstsock << "," << sock << std::endl;
+			}
+
 			m_socketmap[dstsock] =  sock;
 			int event_read_write = UDT_EPOLL_IN | UDT_EPOLL_ERR ;
 			setudtnonblocking(sock);
