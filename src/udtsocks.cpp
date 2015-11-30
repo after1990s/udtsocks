@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 		udtconfig::setlistenport(argv[2]);
 		udtforwardclient::udtforwardclient_init();
 		for(;;)
-				sleep(1000);
+			sleep(1000);
 	}
 	if (argc==5 && argv[1][0] == 'c')
 	{
