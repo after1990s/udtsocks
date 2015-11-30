@@ -25,16 +25,32 @@ int  socks5protocol::recv_socks5_request(UDTSOCKET sock, std::vector<unsigned ch
 	socks5_request_t *req = (socks5_request_t *)&vec[0];
 	if (req->atype == SOCKS5_ATTYPE_IPV4)
 	{
+		if (g_debug)
+		{
+			std::cout << "recv ipv4 req" << std::endl;
+		}
 		//ipv4 addr.
+
 		recved += UDT::recv(sock, (char*)&vec[recved], sizeof(in_addr)+sizeof(uint16_t), 0);
 	}
 	else if(req->atype == SOCKS5_ATTYPE_DOMAIN)
 	{
+		if (g_debug)
+		{
+			std::cout << "recv domain req, stage 1, recv domain length." << std::endl;
+		}
 		//domain name
 		recved += UDT::recv(sock, (char*)&vec[recved], 1, 0);
 		int domainlen = vec[recved-1];
-
+		if (g_debug)
+		{
+			std::cout << "recv domain req, stage 1, recv domain name." << std::endl;
+		}
 		recved += UDT::recv(sock, (char*)&vec[recved], domainlen, 0);
+		if (g_debug)
+		{
+			std::cout << "recv domain req, stage 1, recv port number." << std::endl;
+		}
 		//+short for the port number.
 		recved += UDT::recv(sock, (char*)&vec[recved], sizeof(short), 0);
 	}
