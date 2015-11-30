@@ -36,6 +36,16 @@ void udtconfig::setlistenport(char *port)
 }
 void udtconfig::setserveraddr(char *addr, char* port)
 {
+	static bool runonce = false;
+	if (runonce)
+	{
+		perror("udtconfig::setserveraddr can only call once, due to prevent memory leak, pause.");
+		pause();
+	}
+	if (!runonce)
+	{
+		runonce = true;
+	}
 	m_config.domain = addr;
 	struct addrinfo hints = {0};
 	hints.ai_family  = AF_INET;

@@ -147,8 +147,12 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 			send(ssock, (void*)&vec_buf[0], recved, 0);//socks5 response
 		}
 	}//endwhile
-	//error handle
 
+	//error handle
+	delete udtreadfds;
+	delete udtwritefds;
+	delete sysreadfds;
+	delete syswritefds;
 	perror("udtsocksserver_epoll error");
 	return NULL;
 }

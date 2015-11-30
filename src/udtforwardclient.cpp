@@ -149,6 +149,10 @@ void * udtforwardclient::udtforwardclient_udt_epoll(void *u)
 			}
 			//
 		}
+	delete udtreadfds;
+	delete udtwritefds;
+	delete sysreadfds;
+	delete syswritefds;
 	return NULL;
 }
 
