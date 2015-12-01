@@ -27,7 +27,7 @@ void   udtforwardclient::udtforwardclient_init()
 	UDT::startup();
 	m_eid = UDT::epoll_create();
 	pthread_mutex_init(&m_mutex, NULL);
-	m_udtsock = UDT::socket(AF_INET,SOCK_STREAM, IPPROTO_UDP);
+	m_udtsock = UDT::socket(AF_INET, SOCK_STREAM, IPPROTO_UDP);
 	pthread_t tid;
 	//pthread_create(&tid, NULL, udtforwardclient_accept, &m_udtsock);
 

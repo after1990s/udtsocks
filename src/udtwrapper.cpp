@@ -55,24 +55,24 @@ int recv_udtsock(UDTSOCKET sock, char * buf, int len, int flag)
 int recv_syssock(int sock, char * buf, int len, int flag)
 {
 	int recved = 0;
-		while (recved != len)
+	while (recved != len)
+	{
+		int recvcount = recv(sock, buf, len, flag);
+		if (recvcount <= 0)
 		{
-			int recvcount = recv(sock, buf, len, flag);
-			if (recvcount <= 0)
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
 			{
-				if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
-				{
 
-					return recved;
-				}
-				else
-				{
-					return UDT::ERROR;
-				}
+				return recved;
 			}
-			recved += recvcount;
+			else
+			{
+				return UDT::ERROR;
+			}
 		}
-		return recved;
+		recved += recvcount;
+	}
+	return recved;
 }
 
 int send_udtsock(UDTSOCKET sock, const char * buf, int len)
@@ -86,8 +86,17 @@ int send_udtsock(UDTSOCKET sock, const char * buf, int len)
 	while (reversed  > 0)
 	{
 		int writed = UDT::send(sock, buf, reversed, 0);
-		if (writed == -1)
-			break;
+		if (writed <= 0)
+		{
+			if (UDT::getlasterror().getErrorCode() == CUDTException::EASYNCRCV)
+			{
+				return writed;
+			}
+			else
+			{
+				return UDT::ERROR;
+			}
+		}
 		reversed -= writed;
 	}
 	return len;
@@ -103,8 +112,18 @@ int send_syssock(int sock, const char * buf, int len)
 	while (reversed > 0)
 	{
 		int writed = send(sock, buf, reversed, 0);
-		if (writed == -1)
-			break;
+		if (writed <= 0)
+		{
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+			{
+
+				return writed;
+			}
+			else
+			{
+				return UDT::ERROR;
+			}
+		}
 		reversed -= writed;
 	}
 	return len;
