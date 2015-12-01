@@ -31,10 +31,10 @@ void   udtforwardclient::udtforwardclient_init()
 	pthread_t tid;
 	//pthread_create(&tid, NULL, udtforwardclient_accept, &m_udtsock);
 
-	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
-	pthread_detach(tid);
-	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
-	pthread_detach(tid);
+//	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
+//	pthread_detach(tid);
+//	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
+//	pthread_detach(tid);
 	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
 	pthread_detach(tid);
 }
