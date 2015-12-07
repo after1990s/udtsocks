@@ -3,5 +3,8 @@
 /Release/udtsocks
 /Release/src/*
 /Debug/*
+<<<<<<< HEAD
 /Release/
+=======
+>>>>>>> 3ae6072555a9175ae51912639eca4281ec782fa5
 /Debug/
