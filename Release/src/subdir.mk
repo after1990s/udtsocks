@@ -4,7 +4,6 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../src/autocritical.cpp \
 ../src/socks5protocol.cpp \
 ../src/socks5protocol_test.cpp \
 ../src/udtconfig.cpp \
@@ -15,7 +14,6 @@ CPP_SRCS += \
 ../src/udtwrapper.cpp 
 
 OBJS += \
-./src/autocritical.o \
 ./src/socks5protocol.o \
 ./src/socks5protocol_test.o \
 ./src/udtconfig.o \
@@ -26,7 +24,6 @@ OBJS += \
 ./src/udtwrapper.o 
 
 CPP_DEPS += \
-./src/autocritical.d \
 ./src/socks5protocol.d \
 ./src/socks5protocol_test.d \
 ./src/udtconfig.d \
@@ -41,7 +38,7 @@ CPP_DEPS += \
 src/%.o: ../src/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -D__GXX_EXPERIMENTAL_CXX0X__ -Iudt -Ipthread -O3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	g++ -Iudt -Ipthread -O3 -Wall -c -fmessage-length=0 -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
