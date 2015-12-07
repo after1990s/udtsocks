@@ -14,7 +14,10 @@
 #include <string>
 #include <iostream>
 #include <map>
-#include <udt.h>
+#include <thread>
+#include <functional>
+#include <mutex>
+#include <chrono>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/times.h>
@@ -25,10 +28,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+
+
+#include <udt.h>
 #include "udtwrapper.h"
 #include "socks5.h"
 #include "udtconfig.h"
-#include "autocritical.h"
 #include "socks5protocol.h"
 //implement socks5 proxy server. not implement auth.
 //only accept method CONNECT.
@@ -72,7 +77,7 @@ private:
 
 private:
 	static udtsocksserver * m_pinstance;
-	static pthread_mutex_t m_mutex;
+	static std::mutex m_mutex;
 	static int m_socket;
 	static int m_eid;
 	static pthread_t m_epoll_thread;

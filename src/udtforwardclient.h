@@ -14,6 +14,9 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <mutex>
+#include <chrono>
+#include <thread>
 #include <udt.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -25,8 +28,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+
 #include "udtwrapper.h"
-#include "autocritical.h"
 #include "socks5.h"
 #include "socks5protocol.h"
 #include "udtconfig.h"
@@ -67,7 +70,7 @@ private:
 private:
 
 	//static udtforwardclient * m_pinstance;
-	static pthread_mutex_t m_mutex;
+	static std::mutex m_mutex;
 	static UDTSOCKET m_udtsock;
 	static std::map<int, UDTSOCKET> m_socketmap; // <targetsocket, udtsocket>
 	static int m_eid;

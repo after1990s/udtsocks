@@ -8,7 +8,7 @@
 #include "udtsocksserver.h"
 int udtsocksserver::m_socket;
 int udtsocksserver::m_eid;
-pthread_mutex_t udtsocksserver::m_mutex;
+std::mutex udtsocksserver::m_mutex;
 pthread_t udtsocksserver::m_epoll_thread = 0;
 std::map<int,int> udtsocksserver::m_socketmap;//<socket, UDTSOCKET>
 
@@ -25,7 +25,6 @@ udtsocksserver::~udtsocksserver() {
 
 void udtsocksserver::udtsocksserver_init()
 {
-	pthread_mutex_init(&m_mutex, NULL);
 	m_epoll_thread = 0;
 	UDT::startup();
 	//inital socket
@@ -53,8 +52,10 @@ void udtsocksserver::udtsocksserver_init()
 
 	UDT::epoll_add_ssock(m_eid,m_socket, &read_events);
 	//create thread to accept new connect.
-	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
-	pthread_detach(m_epoll_thread);
+	std::thread epoll_thread(std::bind(udtsocksserver_epoll, &m_socket));
+	epoll_thread.detach();
+//	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
+//	pthread_detach(m_epoll_thread);
 //	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
 //	pthread_detach(m_epoll_thread);
 //	pthread_create(&m_epoll_thread, NULL, udtsocksserver_epoll, &m_socket);
@@ -158,7 +159,7 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 }
 void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 {
-	new autocritical(m_mutex);
+
 	UDTSOCKET u = access_map(m_socketmap, ssock);
 	if (usock!=0 && usock!=-1){
 			UDT::epoll_remove_usock(m_eid, usock);
@@ -178,11 +179,12 @@ void udtsocksserver::udtsocksserver_closesocket(UDTSOCKET usock, int ssock)
 	}
 	else
 	{
-		m_socketmap.erase(ssock);
 		if (g_debug)
 		{
 			std::cout<<"remove socket pair<ssock,usock>:"<< ssock << ", "<< usock << std::endl;
 		}
+		std::lock_guard<std::mutex> lock(m_mutex);
+		m_socketmap.erase(ssock);
 	}
 
 
@@ -219,12 +221,13 @@ void * udtsocksserver::udtsocksserver_accept(void *psocket)
 			//todo: rely fail msg to user.
 			return NULL;
 		}
-		new autocritical(m_mutex);
-		m_socketmap.insert(std::pair<int,int>(clisocket, newclient));
 		//bool f = false;
 		int event_read = UDT_EPOLL_IN;
 		UDT::epoll_add_ssock(m_eid, clisocket, &event_read);
 		UDT::epoll_add_usock(m_eid, newclient, &event_read);
+
+		std::lock_guard<std::mutex> lock(m_mutex);
+		m_socketmap.insert(std::pair<int,int>(clisocket, newclient));
 
 	}//end while
 

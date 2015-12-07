@@ -14,19 +14,21 @@
 #include <iostream>
 #include <map>
 #include <memory>
-#include <udt.h>
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/times.h>
 #include <sys/epoll.h>
 #include <netdb.h>
 #include <pthread.h>
-#include <udt.h>
-#include <udt>
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <stdexcept>
+
+#include <udt.h>
+#include <udt>
 #include "socks5.h"
 #include "socks5protocol.h"
 void setudtnonblocking(UDTSOCKET sock);

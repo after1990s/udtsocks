@@ -13,7 +13,8 @@
 #include <cstring>
 #include <iostream>
 #include <map>
-#include <udt.h>
+
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/times.h>
@@ -24,7 +25,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "autocritical.h"
+
+#include <udt.h>
 #include "socks5.h"
 typedef struct _config{
 	std::string domain;

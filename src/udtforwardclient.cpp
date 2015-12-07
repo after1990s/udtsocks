@@ -7,7 +7,7 @@
 
 #include "udtforwardclient.h"
 #include "socks5.h"
-pthread_mutex_t udtforwardclient::m_mutex;
+std::mutex udtforwardclient::m_mutex;
 UDTSOCKET udtforwardclient::m_udtsock = 0;
 int udtforwardclient::m_eid = 0;
 std::map<int, UDTSOCKET> udtforwardclient::m_socketmap;
@@ -18,7 +18,6 @@ udtforwardclient::~udtforwardclient() {}
 
 void   udtforwardclient::udtforwardclient_destory()
 {
-	pthread_mutex_destroy(&m_mutex);
 	UDT::cleanup();
 }
 
@@ -26,17 +25,18 @@ void   udtforwardclient::udtforwardclient_init()
 {
 	UDT::startup();
 	m_eid = UDT::epoll_create();
-	pthread_mutex_init(&m_mutex, NULL);
 	m_udtsock = UDT::socket(AF_INET, SOCK_STREAM, IPPROTO_UDP);
-	pthread_t tid;
+//	pthread_t tid;
 	//pthread_create(&tid, NULL, udtforwardclient_accept, &m_udtsock);
 
 //	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
 //	pthread_detach(tid);
 //	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
 //	pthread_detach(tid);
-	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
-	pthread_detach(tid);
+//	pthread_create(&tid, NULL, udtforwardclient_udt_epoll, NULL);
+//	pthread_detach(tid);
+	std::thread t_socket(std::bind(udtforwardclient_udt_epoll, nullptr));
+	t_socket.detach();
 }
 
 void udtforwardclient::udtforwardclient_initudtserver()
@@ -62,7 +62,7 @@ void * udtforwardclient::udtforwardclient_accept(void *u)
 	UDTSOCKET sock =*(UDTSOCKET*)u;
 	sockaddr addr = {0};
 	int addrlen = sizeof(sockaddr);
-	pthread_t tid;
+
 
 	UDTSOCKET clisock  = UDT::accept(sock, &addr, &addrlen);
 
@@ -79,8 +79,9 @@ void * udtforwardclient::udtforwardclient_accept(void *u)
 		UDT::close(clisock);
 		return NULL;
 	}
-	pthread_create(&tid, NULL, udtforwardclient_socks5, pclisock);
-	pthread_detach(tid);
+
+	std::thread t_newclient(std::bind (udtforwardclient_socks5, pclisock));
+	t_newclient.detach();
 	return NULL;
 }
 
@@ -280,19 +281,20 @@ int   udtforwardclient::udtforwardclient_socks5_req(UDTSOCKET sock)
 			//回报成功消息
 			udtforwardclient_reply_success(sock);
 			//连接成功，增加一个记录
-			new autocritical(m_mutex);
-
 			if (g_debug)
 			{
 				std::cout << "insert pair<ssock, usock>" << dstsock << "," << sock << std::endl;
 			}
 
-			m_socketmap[dstsock] =  sock;
+
 			int event_read_write = UDT_EPOLL_IN | UDT_EPOLL_ERR ;
 			setudtnonblocking(sock);
 			setsysnonblockingsend(dstsock);
 			UDT::epoll_add_ssock(m_eid, dstsock, &event_read_write);
 			UDT::epoll_add_usock(m_eid, sock, &event_read_write);
+
+			std::lock_guard<std::mutex> lock(m_mutex);
+			m_socketmap[dstsock] =  sock;
 			return UDTSOCKET_SUCCESS;
 		}
 		else
@@ -480,7 +482,7 @@ bool udtforwardclient::udtforwardclient_checkclientaddr(sockaddr addr)
 
 void udtforwardclient::udtforwardclient_closesocket(UDTSOCKET usock, int ssock)
 {
-	new autocritical(m_mutex);
+
 	if (g_debug)
 	{
 		std::cout<<"remove socket pair<ssock,usock>:"<< ssock << ", "<< usock << std::endl;
@@ -490,5 +492,6 @@ void udtforwardclient::udtforwardclient_closesocket(UDTSOCKET usock, int ssock)
 
 	UDT::epoll_remove_ssock(m_eid, ssock);
 	close(ssock);
+	std::lock_guard<std::mutex> lock(m_mutex);
 	m_socketmap.erase(ssock);
 }

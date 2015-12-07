@@ -13,6 +13,7 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+
 #include <udt.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -24,7 +25,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "autocritical.h"
+
 #include "socks5.h"
 #include "udtconfig.h"
 

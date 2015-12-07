@@ -42,6 +42,12 @@ int recv_udtsock(UDTSOCKET sock, char * buf, int len, int flag)
 
 				return recved;
 			}
+			else if (UDT::getlasterror().getErrorCode() == CUDTException::ERESOURCE)
+			{
+				//resource unavailable for a while.
+				sleep(1);
+				continue;
+			}
 			else
 			{
 				return UDT::ERROR;
@@ -60,7 +66,7 @@ int recv_syssock(int sock, char * buf, int len, int flag)
 		int recvcount = recv(sock, buf, len, flag);
 		if (recvcount <= 0)
 		{
-			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN )
 			{
 
 				return recved;
@@ -88,9 +94,15 @@ int send_udtsock(UDTSOCKET sock, const char * buf, int len)
 		int writed = UDT::send(sock, buf, reversed, 0);
 		if (writed <= 0)
 		{
-			if (UDT::getlasterror().getErrorCode() == CUDTException::EASYNCRCV)
+			if (UDT::getlasterror().getErrorCode() == CUDTException::EASYNCRCV )
 			{
 				return writed;
+			}
+			else if (UDT::getlasterror().getErrorCode() == CUDTException::ERESOURCE)
+			{
+				//resource unavailable for a while.
+				sleep(1);
+				continue;
 			}
 			else
 			{
