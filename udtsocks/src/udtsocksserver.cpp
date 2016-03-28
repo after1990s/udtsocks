@@ -97,12 +97,12 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 			if (*i == m_socket)
 			{//new connection
 				if (g_debug){
-					std::cout <<"new counnection come, try accept";
+					std::cout <<"new connection come, try accept";
 					output_content(vec_buf, 0);
 				}
 				udtsocksserver_accept(&m_socket);
 				if (g_debug){
-					std::cout <<"new counnection comes, accept successful";
+					std::cout <<"new connection comes, accept successful";
 					output_content(vec_buf, 0);
 				}
 				continue;
@@ -118,7 +118,7 @@ void * udtsocksserver::udtsocksserver_epoll(void *peid)
 			}
 
 			if (g_debug){
-				std::cout <<"recv from user:";
+				std::cout <<"receive from user:";
 				output_content(vec_buf, iread);
 			}
 			UDT::send (usock, (char*)&vec_buf[0], iread, 0);//socks5 request

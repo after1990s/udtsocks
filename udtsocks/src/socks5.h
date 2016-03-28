@@ -41,11 +41,12 @@ typedef struct _socks5_request_t
 
 typedef socks5_request_t socks5_response_t;
 
-#undef DEBUG
+//#undef DEBUG
 //#pragma pack()
 #ifdef DEBUG
 const bool g_debug = true;
 #else
 const bool g_debug = false;
 #endif
-#endif
+
+#endif //_SOCKS5_H
